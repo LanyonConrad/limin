@@ -9,15 +9,16 @@ function lichessOnGame() {
 
     for (var i = 0; i < games.length; i++) {
         id = games[i].fullId;
-        $("#gameList").append("<div onclick='socket.close(); openGame(\"" + id + "\"," + i + ")' id='" + games[i].gameId + "' data-gameid='" + games[i].fullId + "' style='width: 100%; margin: auto; background-color:transparent; text-align: center; overflow: hidden'><p style='color: #ffffff; text-shadow: none'>" + games[i].opponent.username + " /" + games[i].gameId + "</p></div>");
+        $("#gameList").append("<div onclick='if(socket !=null) socket.close(); openGame(\"" + id + "\"," + i + ")' id='" + games[i].gameId + "' data-gameid='" + games[i].fullId + "' style='width: 100%; margin: auto; background-color:transparent; text-align: center; overflow: hidden'><p style='color: #ffffff; text-shadow: none'>" + games[i].opponent.username + " /" + games[i].gameId + "</p></div>");
 
     }
+    $("#gameList").append("<div onclick='launchApp()' style='width: 100%; margin: auto; background-color:transparent; text-align: center; overflow: hidden'><p style='color: #ffffff; text-shadow: none'>Open lichess App</p></div>");
     // so if it looped through all unsuccessfully, if successful it would make gamify 101
     if (gamify == games.length) {
         console.log("You're not on a game!");
         gamify = 0;
-        if (foreground)
-            launchApp();
+        //if (foreground)
+        //    launchApp();
     }
     else if (gamify < games.length)
         tryy(games[gamify].fullId);
@@ -179,6 +180,8 @@ function loadLobbySocket() {
         clearInterval(pinger);
         pinger = null;
         clearInterval(writer);
+        writeSource = null;
+        writeTarget = null;
         console.log("lobbySocketClosed!");
         if (socket != null)
             socket.close();
@@ -407,7 +410,8 @@ function sendMove(source, target) {
     console.log("move sent to lichess!");
     window.awaitingAck = true;
 
-
+    window.sendSource = null;
+    window.sendTarget = null;
 
 }
 

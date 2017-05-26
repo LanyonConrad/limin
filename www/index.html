@@ -51,22 +51,17 @@
                 <a href="#bluetooth" style="text-decoration:none"><span>Connect Board</span></a>
             </div>
         </div>
-
         <div data-role="main" class="ui-content" style="background-color: #1a1a1a;">
             <!-- start example HTML -->
-
             <div style="width: 85%; min-height: 110px; color: #ffffff; text-shadow: none; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-top:150px; text-align: center;">
-
                 <div id="connectInfo" onclick="lichessLogin()" style="width:100%; background-color: #4286f4; margin: auto; text-align: center;">
                     <!--<div style="float:right"><img style="height:80px" src="img/lichess.svg" /></div>-->
                     <h2 id="connectH2" style="color: #ffffff; text-shadow: none">Connect to<br />lichess</h2>
                 </div>
-
                 <div id="logoutInfo" style="width:100%; background-color: #4286f4; margin: auto; text-align: center;display:none;">
                     <h2 id="username" style="color: #ffffff; text-shadow: none"></h2>
                     <span onclick='lobbySocket.close(); lichessLogout();'>logout</span>
                 </div>
-
                 <div id="loginInfo" style="width:100%; background-color: #4286f4; margin: auto; text-align: center;display:none">
                     <form>
                         <input type="text" id="user" name="user" placeholder="Username" value="lanyon" required>
@@ -74,23 +69,23 @@
                         <button onclick="lichessLogin()">Login</button>
                     </form>
                 </div>
-
                 <div id="connectedInfo" style="width:100%; background-color: #4286f4; margin: auto; text-align: center;display:none">
                     <br />
                     <br />
                     <div style="width:100%;">
                         <div style="width:75%; float:left;background-color:#ffffff;color:#4286f4" onclick="lobbySocket.close();"><p>Disconnect</p></div><div style="width:25%;float:right;background-color:#f48642" onclick="lichessLogin();"><p>Reload</p></div>
-                    </div>
-                    <div id="gameList">
-                        No games Found!
+                        <div id="gameList">
+                            
+                        </div>
+                        
+       
                     </div>
                     
+
                     <!--<label for="always">Always launch app</label>
                     <input type="checkbox" id="always">-->
                 </div>
-
             </div>
-
             <div style="clear:both"></div><br />
             <div style="width: 85%; height: 110px; background-color: #f48642; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden">
                 <div id="board3" style="width: 125px; margin-top: -5px; margin-left: -10px; float: left"></div>
@@ -121,10 +116,8 @@
             <div style="clear:both"></div><br />
             <!-- end example HTML -->
             <div style="width: 85%;padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden"><span style="color: #ffffff; text-shadow: none;font-size:10px">CONNECT v1.0 - Handly LLC &copy; 2017</span></div>
-
         </div>
     </div>
-
     <div data-role="page" id="bluetooth" data-theme="a">
         <div data-role="header" data-add-back-btn="true">
             <h1>Connect Board</h1>
@@ -172,8 +165,8 @@
 
         }
 
-        var sendSource = null;
-        var sendTarget = null;
+        window.sendSource = null;
+        window.sendTarget = null;
 
         function startNotification(device_id) {
             console.log("I should be starting notification now with device: " + device_id + " and service_id: " + service_id + " and with char_id: " + characteristic_id);
@@ -245,7 +238,6 @@
         }
 
     </script>
-
     <script>
         $('#createMachineGame-btn').one('click', function () {
             cfg.onDrop = machine;
