@@ -1,0 +1,31 @@
+{
+    "prepare_queue": {
+        "installed": [],
+        "uninstalled": []
+    },
+    "config_munge": {
+        "files": {}
+    },
+    "installed_plugins": {
+        "cordova-plugin-ble-central": {
+            "BLUETOOTH_USAGE_DESCRIPTION": " ",
+            "PACKAGE_NAME": "io.cordova.myappdbd4a7"
+        },
+        "cordova-plugin-compat": {
+            "PACKAGE_NAME": "io.cordova.myappdbd4a7"
+        },
+        "cordova-plugin-crosswalk-webview": {
+            "PACKAGE_NAME": "io.cordova.myappdbd4a7"
+        },
+        "cordova-plugin-statusbar": {
+            "PACKAGE_NAME": "io.cordova.myappdbd4a7"
+        },
+        "cordova-plugin-whitelist": {
+            "PACKAGE_NAME": "io.cordova.myappdbd4a7"
+        },
+        "com.lampa.startapp": {
+            "PACKAGE_NAME": "io.cordova.myappdbd4a7"
+        }
+    },
+    "dependent_plugins": {}
+}
