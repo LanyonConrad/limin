@@ -506,20 +506,26 @@ function digestMSG(eventData) {
 
 function launchApp() {
 
-    startApp.set({
-        "application": "org.lichess.mobileapp"
-    }).start(function () { /* success */
-        console.log("launched!");
-    }, function (error) { /* fail */
-        console.log(error);
-    });
+    if(device.platform == "Android")
+    try {
+        startApp.set({
+            "application": "org.lichess.mobileapp"
+        }).start(function () { /* success */
+            console.log("launched!");
+        }, function (error) { /* fail */
+            console.log(error);
+        });
+    }
+    catch (err){}
 
-
-
-    startApp.set("lichess://").start(function () { /* success */
-        console.log("launched!");
-    }, function (error) { /* fail */
-        console.log(error);
-    });
+    if(device.platform == "iOS")
+    try{
+        startApp.set("lichess://").start(function () { /* success */
+            console.log("launched!");
+        }, function (error) { /* fail */
+            console.log(error);
+        });
+    }
+    catch(err){}
 
 }
