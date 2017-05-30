@@ -36,21 +36,26 @@
     </style>
 </head>
 <body>
+    <script>
+        $(".devicy").one("click", function () {
+            if (device_id != null)
+                disconnectDevice();
+            device_id = this.getAttribute('data-deviceid');
+            document.getElementById("statusDiv").innerText = "Connecting...";
+            ble.connect(device_id, function () { startNotification(device_id) }, function () { document.getElementById("statusDiv").innerText = "Disconnected"; });
+        });
+    </script>
     <div data-role="page" id="home" data-theme="a">
-        <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100px;height:100px; overflow:hidden;z-index:100;font-size:18px;text-align:center">
+        <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
             <div onclick="(function () { (document.getElementById('header').style.width == '100px') ? document.getElementById('header').style.width = '100%' : document.getElementById('header').style.width = '100px' })();" style="background-color: #4286f4;float:left;width:100px;height:100px">
                 <img style="position: relative;top: 22px;margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
             </div>
-            <div style="background-color: #f48642;float:left;height:50px;padding:0px 10px;">
-                <button style="text-decoration:none">Login</button>
+            <div style="background-color: #86f442;float:right;padding:0px 10px;">
+                <div id="deviceList"></div><div id="statusDiv"></div><div id="refreshButton">retry</div><div id="disconnectButton"> x</div>
             </div>
-            <div onclick="loadGameSockets()" style="background-color: #4286f4;float:left;height:50px;padding:0px 10px;">
-                <span>sockets</span>
-            </div>
-            <div style="background-color: #86f442;float:left;height:50px;padding:0px 10px;">
-                <a href="#bluetooth" style="text-decoration:none"><span>Connect Board</span></a>
-            </div>
+
         </div>
+
         <div data-role="main" class="ui-content" style="background-color: #1a1a1a;">
             <!-- start example HTML -->
             <div style="width: 85%; min-height: 110px; color: #ffffff; text-shadow: none; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-top:150px; text-align: center;">
@@ -75,28 +80,16 @@
                     <div style="width:100%;">
                         <div style="width:75%; float:left;background-color:#ffffff;color:#4286f4" onclick="lobbySocket.close();"><p>Disconnect</p></div><div style="width:25%;float:right;background-color:#f48642" onclick="lichessLogin();"><p>Reload</p></div>
                         <div id="gameList">
-                            
+
                         </div>
-                        
-       
+
+
                     </div>
-                    
+
 
                     <!--<label for="always">Always launch app</label>
                     <input type="checkbox" id="always">-->
                 </div>
-            </div>
-            <div style="clear:both"></div><br />
-            <div style="width: 85%; height: 110px; background-color: #f48642; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden">
-                <div id="board3" style="width: 125px; margin-top: -5px; margin-left: -10px; float: left"></div>
-                <h2 style="color: #ffffff; text-shadow: none">Stockfish lvl 6</h2>
-                <p style="color: #ffffff; text-shadow: none">local AI &middot; tap to play</p>
-            </div>
-            <div style="clear:both"></div><br />
-            <div style="width: 85%; height: 110px; background-color: #86f442; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden">
-                <div id="board4" style="width: 125px; margin-top: -5px; margin-right: -10px; float: right"></div>
-                <h2 style="color: #ffffff; text-shadow: none">Lanyon</h2>
-                <p style="color: #ffffff; text-shadow: none">OTB &middot; tap to play</p>
             </div>
             <div style="clear:both"></div><br />
             <a href="" style="text-decoration:none">
@@ -112,56 +105,77 @@
                     <h2 style="color: #ffffff; text-shadow: none;">Record Game</h2>
                 </div>
             </a>
-            <div id="asdf">fdsa</div>
+
             <div style="clear:both"></div><br />
             <!-- end example HTML -->
             <div style="width: 85%;padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden"><span style="color: #ffffff; text-shadow: none;font-size:10px">CONNECT v1.0 - Handly LLC &copy; 2017</span></div>
+            <div id="asdf"></div>
         </div>
     </div>
-    <div data-role="page" id="bluetooth" data-theme="a">
-        <div data-role="header" data-add-back-btn="true">
-            <h1>Connect Board</h1>
-        </div>
-        <div data-role="main" class="ui-content">
-            <div id="mainPage">
-                <div style="margin-top: 150px;" id="deviceList"></div>
-                <button id="refreshButton">Refresh</button>
-            </div>
-            <div id="detailPage">
-                <button id="disconnectButton">Disconnect</button>
-            </div>
-            <div id="statusDiv"></div>
-        </div>
-    </div>
+
     <script>
 
         var service_id = '49535343-FE7D-4AE5-8FA9-9FAFD205E455';
         var characteristic_id = '49535343-1E4D-4BD9-BA61-23C647249616';
-        var device_id;
+        var device_id = null;
 
-        $(document).on('pagebeforeshow', '#bluetooth', function () {
-
-            loadDeviceList();
-
-        });
 
         function loadDeviceList() {
             $("#deviceList").html("");
 
-            $('#deviceList').one('click', 'a.current', function (device) {
-                console.log("connecting to device with id = " + $(this).attr('data-deviceid'));
-                document.getElementById("asdf").innerHTML = "Connecting...";
-                device_id = $(this).attr('data-deviceid');
-                ble.connect(device_id, function () { startNotification(device_id) }, function () { alert("Board is disconnected!") });
+            document.getElementById("statusDiv").innerText = "Finding boards...";
 
+            var deviceList = [];
+            var foundDevice = false;
 
-            });
+            ble.startScan([],
+            function (device) {
+                if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp" && foundDevice == false) {
+                    device_id = device.id;
+                    foundDevice = true;
+                    document.getElementById("statusDiv").innerText = "Connecting...";
+                    ble.connect(device_id, function () { startNotification(device_id) }, function () { document.getElementById("statusDiv").innerText = "Disconnected"; });
 
-            ble.scan([], 5, function (device) {
-                if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp")
-                    $("#deviceList").append("<a style='text-decoration:none' href='#home' class='current' data-deviceid='" + device.id + "'><div style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><h2 style='color: #ffffff; text-shadow: none'>" + device.name + "</h2><p style='color: #ffffff; text-shadow: none'>" + device.id + " &middot; tap to connect</p></div></a><div style='clear:both'></div><br />");
+                }
+                $("#deviceList").append("<div class='devicy' data-deviceid='" + device.id + "'>" + device.name + "</div>");
+            },
+            function () { console.log('startScan failed') });
 
-            }, console.log('Could not find board'));
+            setTimeout(function () {
+                ble.stopScan(
+                    function () {
+                        console.log("Scan complete");
+                        if (!foundDevice)
+                            document.getElementById("statusDiv").innerText = "No board found!";
+                    },
+                    function () { console.log("stopScan failed"); }
+                );
+            }, 5000);
+
+            //ble.startScan([],
+            //function(device) {
+            //    deviceList.push(device);
+            //},
+            //function () { console.log('startScan failed') });
+
+            //setTimeout(function() {
+            //    ble.stopScan(
+            //        function () {
+            //            console.log("Scan complete");
+            //            for (var i in deviceList) {
+            //                console.log(deviceList[i]);
+            //                $("#deviceList").append("<a style='text-decoration:none' href='#home' class='current' data-deviceid='" + deviceList[i].id + "'><div style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><h2 style='color: #ffffff; text-shadow: none'>" + deviceList[i].name + "</h2><p style='color: #ffffff; text-shadow: none'>" + deviceList[i].id + " &middot; tap to connect</p></div></a><div style='clear:both'></div><br />");
+            //            }
+            //        },
+            //        function() { console.log("stopScan failed"); }
+            //    );
+            //}, 5000);
+
+            //ble.startScan([], 5, function (device) {
+            //    if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp")
+            //        $("#deviceList").append("<a style='text-decoration:none' href='#home' class='current' data-deviceid='" + device.id + "'><div style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><h2 style='color: #ffffff; text-shadow: none'>" + device.name + "</h2><p style='color: #ffffff; text-shadow: none'>" + device.id + " &middot; tap to connect</p></div></a><div style='clear:both'></div><br />");
+
+            //}, function () { console.log('No BLE devices found') });
 
         }
 
@@ -170,7 +184,7 @@
 
         function startNotification(device_id) {
             console.log("I should be starting notification now with device: " + device_id + " and service_id: " + service_id + " and with char_id: " + characteristic_id);
-            document.getElementById("asdf").innerHTML = "Ready";
+            document.getElementById("statusDiv").innerHTML = "Ready";
             var onData = function (buffer) {
                 // Decode the ArrayBuffer into a typed Array based on the data you expect
                 var data = new Uint8Array(buffer);
@@ -197,16 +211,10 @@
         function sendSquares(square, data) {
 
             if (square in dests) {
-                //if(sendSource != null)
-                //document.getElementsByClassName("square-" + sendSource)[0].style.boxShadow = "none";
+
                 sendSource = square;
 
-                //var element = document.getElementsByClassName("square-" + sendSource)[0];
-                //console.log(element.style.backgroundColor);
-                //element.style.backgroundColor = "#ff0000";
-                //element.style.backgroundColor = element.style.backgroundColor;
-                //console.log(element.style.backgroundColor);
-                //$('#chessboard').trigger('create');
+
                 clearInterval(writer);
                 latestMove = null;
                 if (data)
@@ -217,7 +225,6 @@
             else if (sendSource != null)
                 if (dests[sendSource].includes(square)) {
                     sendTarget = square;
-                    //document.getElementsByClassName("square-" + sendTarget)[0].style.boxShadow = "0px 0px 10px #ff0000";
                     console.log("sendTarget is now " + sendTarget);
                 }
 
@@ -225,200 +232,18 @@
                 console.log("sending move " + sendSource + "" + sendTarget);
                 sendMove(sendSource, sendTarget);
 
-                //document.getElementsByClassName("square-" + sendSource)[0].style.boxShadow = "none";
-                //document.getElementsByClassName("square-" + sendTarget)[0].style.boxShadow = "none";
-
                 sendSource = null;
                 sendTarget = null;
             }
         }
 
         function disconnectDevice() {
-            ble.disconnect(device_id);
+            ble.disconnect(device_id, function () { document.getElementById("statusDiv").innerText = "Disconnected"; }, function () { alert("disconnect failed") });
+            device_id = null;
         }
 
     </script>
-    <script>
-        $('#createMachineGame-btn').one('click', function () {
-            cfg.onDrop = machine;
-        });
-    </script>
-    <div data-role="page" id="machine" data-theme="a">
-        <div data-role="header">
-            <h1>Play Machine</h1>
-        </div>
-        <div data-role="main" class="ui-content">
-            <form>
-                <select name="engine" id="machine-engine">
-                    <option value="stockfish">Stockfish</option>
-                    <option value="p4wn" disabled>p4wn</option>
-                </select>
-                <select name="level" id="machine-level">
-                    <option value="1">Level 1</option>
-                    <option value="2">Level 2</option>
-                    <option value="3">Level 3</option>
-                    <option value="4">Level 4</option>
-                    <option value="5">Level 5</option>
-                    <option value="6">Level 6</option>
-                    <option value="7">Level 7</option>
-                    <option value="8">Level 8</option>
-                </select>
-                <select name="color" id="machine-color">
-                    <option value="white">White</option>
-                    <option value="black">Black</option>
-                    <option value="random">Random</option>
-                </select>
-                <select name="timeMode" id="machine-timeMode">
-                    <option value="0">Unlimited</option>
-                    <option value="1" disabled>Real time</option>
-                </select>
-                <a href="#chessboard" class="ui-btn" id="createMachineGame-btn">Create Game</a>
-            </form>
-        </div>
-    </div>
-    <script>
-        $('#createMachineGame-btn').one('click', function () {
-            cfg.onDrop = otb;
-        });
-    </script>
-    <div data-role="page" id="otb" data-theme="a">
-        <div data-role="header">
-            <h1>Play otb</h1>
-        </div>
-        <div data-role="main" class="ui-content">
-            <form>
-                <select name="variant" id="otb-variant">
-                    <option value="1">Standard</option>
-                    <option value="2">Chess960</option>
-                    <option value="5">Three-check</option>
-                </select>
-                <select name="color" id="otb-color">
-                    <option value="white">White</option>
-                    <option value="black">Black</option>
-                    <option value="random">Random</option>
-                </select>
-                <select name="timeMode" id="otb-timeMode">
-                    <option value="0">Unlimited</option>
-                    <option value="1" disabled>Real time</option>
-                </select>
-                <a href="#chessboard" class="ui-btn" id="createOTBGame-btn">Create Game</a>
-            </form>
-        </div>
-    </div>
-    <div data-role="page" id="chessboard" data-theme="a">
-        <div id="drawMenu" style="height:100%; width:100%; background-color: rgba(255,255,255,0.90); position:absolute;top:0;left:0;z-index:1000;text-align: center;font-size:32px;display:none">
-            <div style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;">
-                <b>Accept Draw?</b><br /><br />
-                <span>
-                    <span style="margin: 1em; color: #00bb00"><b>Yes</b></span>
-                    <span style="margin: 1em; color: #ff0000"><b>No</b></span>
-                </span>
-            </div>
-        </div>
-        <div id="endMenu" style="height:100%; width:100%; background-color: rgba(255,255,255,0.90); position:absolute;top:0;left:0;z-index:1000;text-align: center;font-size:32px;display:none">
-            <div style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;">
-                <span style="font-size:1.25em;margin: 1em;border:none;border-bottom:2px solid;padding: .3em;"><b>Game Over</b></span>
-                <br /><br /><br />
-                <a style="text-decoration:none" href="#home"><b style="color:#008aff" onclick="rematch()">Rematch</b></a>
-                <br /><br />
-                <a id="analyzeLink" style="text-decoration:none" href=""><b style="color:#008aff">Analyze</b></a>
-                <br /><br />
-                <br /><br />
-                <a style="text-decoration:none" href="#home"><b style="color:#000000;font-size:.75em;">Home</b></a>
-            </div>
-        </div>
-        <div id="gameMenu" style="height:100%; width:100%; background-color: rgba(255,255,255,0.90); position:absolute;top:0;left:0;z-index:1000;text-align: center;font-size:32px;display:none">
-            <span id="gameMenuX" style="font-size:2em;line-height:0px;position:absolute;top:32px;right:5px;font-weight:200">X</span>
-            <div style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;">
-                <span style="font-size:1.25em;margin: 1em;border:none;border-bottom:2px solid;padding: .3em;margin-top:0px;line-height:0px"><b>Game Menu</b></span>
-                <br /><br /><br />
-                <b style="color:#008aff" onclick="(function () { document.getElementById('gameMenu').style.display = 'none'; resign() })();">Resign</b>
-                <br /><br />
-                <b style="color:#008aff;" onclick="takeback()">Propose Takeback</b>
-                <br /><br />
-                <br /><br />
-                <a style="text-decoration:none" href="#home"><b style="color:#000000;font-size:.75em;">Home</b></a>
-            </div>
-        </div>
-        <div role="main">
-            <div id="overBoard" style="overflow:hidden;font-family:'digital-clock-font';">
-                <div id="overTime" style="margin: 0px 20px; color: #ffffff; padding: 5px; background-color: rgba(0, 0, 0, 0.3); border-radius: 5px; font-size: 70px; position: relative; top: 50%; text-align: center; transform: perspective(1px) translateY(-50%);">
-                    &nbsp;
-                </div>
-            </div>
-            <!-- start example HTML -->
-            <div id="board" style="width: 100%"></div>
-            <!-- end example HTML -->
-            <div id="underBoard" style="overflow:hidden;font-family:'digital-clock-font';">
-                <div id="underTime" style="margin: 0px 20px; color: #ffffff; padding: 5px; background-color: rgba(0, 0, 0, 0.3); border-radius: 5px; font-size: 70px; position: relative; top: 50%; text-align: center; transform: perspective(1px) translateY(-50%);">
-                    &nbsp;
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        var otb = function (source, target, piece, newPos, oldPos, orientation) {
-            console.log("New position: " + ChessBoard.objToFen(newPos));
-            console.log("Old position: " + ChessBoard.objToFen(oldPos));
-            console.log("Orientation: " + orientation);
-        };
 
-        var machine = function (source, target, piece, newPos, oldPos, orientation) {
-            console.log("New position: " + ChessBoard.objToFen(newPos));
-            console.log("Old position: " + ChessBoard.objToFen(oldPos));
-            console.log("Orientation: " + orientation);
-        };
-
-        var lichess = function (source, target) {
-            if (source != target && target != "offboard") {
-                console.log(source + target);
-                sendMove(source, target);
-            }
-
-        };
-
-        var cfg = {
-            draggable: false,
-            position: 'clear',
-            onDrop: null
-        };
-
-        var init = function (cfg) {
-
-            //--- start example JS ---
-
-            window.board = ChessBoard('board', cfg);
-
-            if (cfg.onDrop == lichess)
-                try {
-                    syncFEN();
-                }
-                catch (err) {
-                }
-
-            //--- end example JS ---
-
-            for (var i = 0; i < 64; i++)
-                $('.square-' + squares[i]).on('click', function () { console.log(this.dataset.square); sendSquares(this.dataset.square); });
-
-        }; // end init()
-
-        $(document).on('pageshow', '#chessboard', function () {
-            init(cfg);
-            $("#overBoard, #underBoard").height(($(window).height() - $(window).width()) / 2);
-
-            $("#gameMenuX").on("tap", function () {
-                document.getElementById("gameMenu").style.display = "none";
-            });
-
-            $.event.special.tap.tapholdThreshold = 400,
-            $("#overBoard, #underBoard").on("taphold", function () {
-                document.getElementById("gameMenu").style.display = "initial";
-            });
-        });
-
-        $(document).on('pagehide', '#chessboard', function () { if (typeof socket != 'undefined') socket.close(); board.clear(false); document.getElementById('endMenu').style.display = 'none'; document.getElementById('gameMenu').style.display = 'none' });
-    </script>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="scripts/platformOverrides.js"></script>
     <script type="text/javascript" src="scripts/index.js"></script>

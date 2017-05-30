@@ -17,6 +17,8 @@
 
         //getLichessUser();
 
+        loadDeviceList();
+
         $('#createMachineGame-btn').click(createMachineGame);
 
         $('#createOTBGame-btn').click(createOTBGame);
