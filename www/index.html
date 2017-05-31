@@ -36,22 +36,14 @@
     </style>
 </head>
 <body>
-    <script>
-        $(".devicy").one("click", function () {
-            if (device_id != null)
-                disconnectDevice();
-            device_id = this.getAttribute('data-deviceid');
-            document.getElementById("statusDiv").innerText = "Connecting...";
-            ble.connect(device_id, function () { startNotification(device_id) }, function () { document.getElementById("statusDiv").innerText = "Disconnected"; });
-        });
-    </script>
+
     <div data-role="page" id="home" data-theme="a">
         <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
             <div onclick="(function () { (document.getElementById('header').style.width == '100px') ? document.getElementById('header').style.width = '100%' : document.getElementById('header').style.width = '100px' })();" style="background-color: #4286f4;float:left;width:100px;height:100px">
                 <img style="position: relative;top: 22px;margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
             </div>
-            <div style="background-color: #86f442;float:right;padding:0px 10px;">
-                <div id="deviceList"></div><div id="statusDiv"></div><div id="refreshButton">retry</div><div id="disconnectButton"> x</div>
+            <div style="float:right;padding:0px 10px;">
+                <div id="deviceList"></div><div id="statusDiv"></div>
             </div>
 
         </div>
@@ -120,7 +112,7 @@
         var device_id = null;
 
 
-        function loadDeviceList() {
+        function loadDeviceList(event, specified_id) {
             $("#deviceList").html("");
 
             document.getElementById("statusDiv").innerText = "Finding boards...";
@@ -130,26 +122,47 @@
 
             ble.startScan([],
             function (device) {
-                if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp" && foundDevice == false) {
+                if (specified_id) {
+                    console.log(specified_id);
+                    if (specified_id == device.id) {
+                        device_id = device.id;
+                        foundDevice = true;
+                        document.getElementById("statusDiv").innerText = "Connecting...";
+                        ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
+                        $("#deviceList").append("<span style='color:#ff0000;' onclick='disconnectDevice()'>&times; </span><span style='color:#86f442' class='devicy' data-deviceid='" + device.id + "'><span>" + device.name + "</span></span>");
+                    }
+                }
+                else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp" && foundDevice == false) {
                     device_id = device.id;
                     foundDevice = true;
                     document.getElementById("statusDiv").innerText = "Connecting...";
-                    ble.connect(device_id, function () { startNotification(device_id) }, function () { document.getElementById("statusDiv").innerText = "Disconnected"; });
-
+                    ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
+                    $("#deviceList").append("<span style='color:#ff0000;' onclick='disconnectDevice()'>&times; </span><span style='color:#86f442' class='devicy' data-deviceid='" + device.id + "'><span>" + device.name + "</span></span>");
                 }
-                $("#deviceList").append("<div class='devicy' data-deviceid='" + device.id + "'>" + device.name + "</div>");
+                else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp")
+                    $("#deviceList").append("<div class='devicy' data-deviceid='" + device.id + "'>" + device.name + "</div>");
             },
             function () { console.log('startScan failed') });
 
             setTimeout(function () {
                 ble.stopScan(
                     function () {
+
+                        $(".devicy").one("click", function () {
+                            console.log(this);
+                            new_device_id = $(this).attr('data-deviceid');
+
+                            disconnectDevice(event, new_device_id);
+
+
+                        });
+
                         console.log("Scan complete");
                         if (!foundDevice)
-                            document.getElementById("statusDiv").innerText = "No board found!";
+                            disconnectDevice();
                     },
                     function () { console.log("stopScan failed"); }
-                );
+                    );
             }, 5000);
 
             //ble.startScan([],
@@ -184,7 +197,7 @@
 
         function startNotification(device_id) {
             console.log("I should be starting notification now with device: " + device_id + " and service_id: " + service_id + " and with char_id: " + characteristic_id);
-            document.getElementById("statusDiv").innerHTML = "Ready";
+            document.getElementById("statusDiv").innerHTML = "";
             var onData = function (buffer) {
                 // Decode the ArrayBuffer into a typed Array based on the data you expect
                 var data = new Uint8Array(buffer);
@@ -202,8 +215,8 @@
 
             }
             ble.startNotification(device_id,
-                  service_id,
-                  characteristic_id, onData, function () { console.log("failure to start notification") });
+            service_id,
+            characteristic_id, onData, function () { console.log("failure to start notification") });
 
 
         }
@@ -237,9 +250,15 @@
             }
         }
 
-        function disconnectDevice() {
-            ble.disconnect(device_id, function () { document.getElementById("statusDiv").innerText = "Disconnected"; }, function () { alert("disconnect failed") });
+        function disconnectDevice(event, new_device_id) {
+            ble.disconnect(device_id, function () { }, function () { alert("disconnect failed") });
+            document.getElementById("statusDiv").innerHTML = "Disconnected<div style='color:#86f442' onclick='loadDeviceList()'>retry</div>"
             device_id = null;
+            $("#deviceList").html("");
+            if (new_device_id !== undefined) {
+                console.log(new_device_id);
+                loadDeviceList(event, new_device_id);
+            }
         }
 
     </script>

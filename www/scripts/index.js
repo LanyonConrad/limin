@@ -23,10 +23,6 @@
 
         $('#createOTBGame-btn').click(createOTBGame);
 
-        $('#refreshButton').click(loadDeviceList);
-
-        $('#disconnectButton').click(disconnectDevice);
-
 
         
 
