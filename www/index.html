@@ -197,7 +197,7 @@
                         foundDevice = true;
                         document.getElementById("statusDiv").innerText = "Connecting...";
                         ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
-                        $("#deviceList").append("<span style='color:#ff0000;' onclick='disconnectDevice()'>&times; </span><span style='color:#86f442' class='devicy' data-deviceid='" + device.id + "'><span>" + device.name + "</span></span>");
+                        $("#deviceList").append("<span onclick='disconnectDevice()'><span style='color:#ff0000;'>&times; </span><span style='color:#86f442'>" + device.name + "</span></span>");
                     }
                 }
                 else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp" && foundDevice == false) {
@@ -205,7 +205,7 @@
                     foundDevice = true;
                     document.getElementById("statusDiv").innerText = "Connecting...";
                     ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
-                    $("#deviceList").append("<span style='color:#ff0000;' onclick='disconnectDevice()'>&times; </span><span style='color:#86f442' class='devicy' data-deviceid='" + device.id + "'><span>" + device.name + "</span></span>");
+                    $("#deviceList").append("<span onclick='disconnectDevice()'><span style='color:#ff0000;'>&times; </span><span style='color:#86f442'>" + device.name + "</span></span>");
                 }
                 else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp")
                     $("#deviceList").append("<div class='devicy' data-deviceid='" + device.id + "'>" + device.name + "</div>");
