@@ -311,6 +311,8 @@ function gameConnect(gameInfo) {
         
         document.getElementById(gameId).style.backgroundColor = "#86f442";
 
+        latestMove = null;
+
     };
 
     socket.onmessage = function (event) {

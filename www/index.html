@@ -270,7 +270,7 @@
                 // Decode the ArrayBuffer into a typed Array based on the data you expect
                 var data = new Uint8Array(buffer);
 
-                document.getElementById("asdf").innerHTML = document.getElementById("asdf").innerHTML + "<br />" + (data[0]);
+                //document.getElementById("asdf").innerHTML = document.getElementById("asdf").innerHTML + "<br />" + (data[0]);
                 console.log("if " + data[0] + " equals " + writeTarget + ", blinking should stop");
                 if (data[0] == writeTarget) {
                     clearInterval(writer);
