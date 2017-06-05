@@ -32,7 +32,15 @@
         }
     </style>
     <script>
-
+        window.myGame = {
+            "White": "",
+            "Black": "",
+            "Result": "",
+            "TimeCreated": "",
+            "Date": "",
+            "PGN": "",
+            "FEN": ""
+        }
 
         function gameStore(game) {
             //localStorage.removeItem("games");
@@ -55,19 +63,24 @@
 
         function OTBgames() {
 
-            var lookin = JSON.parse("[" + localStorage.games + "]");
+            if (localStorage.games !== undefined) {
 
-            console.log(lookin.length);
+                var lookin = JSON.parse("[" + localStorage.games + "]");
 
-            for (var i = 0; i < lookin.length; i++) {
-                console.log(lookin[i]);
+                console.log(lookin.length);
 
-                $("#gameHistory").append("<a style='text-decoration:none' href='#chessboard'><div style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + " vs. " + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>lichess &middot; tap to play</p></div></a><div style='clear:both'></div><br />");
+                for (var i = 0; i < lookin.length; i++) {
+                    console.log(lookin[i]);
 
-                var board = ChessBoard('board' + i, {
-                    position: lookin[i].FEN,
-                    showNotation: false
-                });
+                    $("#gameHistory").append("<div id='gamey" + i + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p></div><div style='clear:both'></div><br />");
+
+                    $("#gamey" + i).on("vclick", function (event) { (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
+
+                    var board = ChessBoard('board' + i, {
+                        position: lookin[i].FEN,
+                        showNotation: false
+                    });
+                }
             }
         }
     </script>
@@ -135,7 +148,7 @@
                     <form>
                         <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIWhite" placeholder="White" required>
                         <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIBlack" placeholder="Black" required>
-                        <button onclick="(function () { $('body').pagecontainer('change', '#gamePage') })()">Create Game</button>
+                        <button onclick="(function () { myGame.White = document.getElementById('playAIWhite').value; myGame.Black = document.getElementById('playAIBlack').value; $('body').pagecontainer('change', '#gamePage') })()">Create Game</button>
                         <a href="#OTBgames" class="ui-btn" onclick="">View Games</a>
                     </form>
                 </div>
@@ -242,15 +255,8 @@
 
                     var n = new Date().toJSON();
 
-                    window.myGame = {
-                        "White": "",
-                        "Black": "",
-                        "Result": "",
-                        "TimeCreated": Date.now(),
-                        "Date": n.slice(0, 4) + "." + n.slice(5, 7) + "." + n.slice(8, 10),
-                        "PGN": "",
-                        "FEN": ""
-                    }
+                    myGame.TimeCreated = Date.now();
+                    myGame.Date = n.slice(0, 4) + "." + n.slice(5, 7) + "." + n.slice(8, 10);
 
                     // start example JS
                     window.board,
@@ -258,11 +264,6 @@
                       statusEl = $('#status'),
                       fenEl = $('#fen'),
                       pgnEl = $('#pgn');
-
-
-                    myGame.White = 'Robert James Fischer';
-
-                    myGame.Black = 'Mikhail Tal';
 
                     // do not pick up pieces if the game is over
                     // only pick up pieces for the side to move
