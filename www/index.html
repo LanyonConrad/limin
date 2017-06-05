@@ -32,14 +32,7 @@
         }
     </style>
     <script>
-        var myGame = {
-            "White": "",
-            "Black": "",
-            "Result": "",
-            "Date": "",
-            "PGN": "",
-            "FEN": ""
-        }
+
 
         function gameStore(game) {
             //localStorage.removeItem("games");
@@ -88,6 +81,7 @@
             </div>
             <div style="float:right;padding:0px 4px;">
                 <div id="deviceList"></div><div id="statusDiv"></div>
+                <div id="heighter">hhk</div>
             </div>
 
         </div>
@@ -128,9 +122,29 @@
                     <input type="checkbox" id="always">-->
                 </div>
             </div>
-            <div style="clear:both"></div><br />
-            <div style="width: 85%; color: #ffffff; text-shadow: none; background-color: #f48642; padding: 5px 10px 10px 10px; margin: auto; text-align: center;">
-                <div id="playAI" onclick="(document.getElementById('playAINames').style.display == 'initial') ? document.getElementById('playAINames').style.display = 'none' : document.getElementById('playAINames').style.display = 'initial'" style="width:100%; margin: auto; height:110px; text-align: center;">
+            <div id="playOTBdiv" style="clear:both"></div><br />
+
+            <div style="width: 85%; color: #ffffff; text-shadow: none; background-color: #86f442; padding: 5px 10px 10px 10px; margin: auto; text-align: center;">
+                <div id="playOTB" onclick="(document.getElementById('playOTBNames').style.display == 'initial') ? document.getElementById('playOTBNames').style.display = 'none' : document.getElementById('playOTBNames').style.display = 'initial'; scrollBy(0, 100);" style="width:100%; margin: auto; height:110px; text-align: center;">
+                    <br />
+                    <h2 id="playOTBH2" style="color: #ffffff; text-shadow: none">Play OTB</h2>
+                </div>
+
+                <div id="playOTBNames" style="width:100%; margin: auto; text-align: center;display:none">
+
+                    <form>
+                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIWhite" placeholder="White" required>
+                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIBlack" placeholder="Black" required>
+                        <button onclick="(function () { $('body').pagecontainer('change', '#gamePage') })()">Create Game</button>
+                        <a href="#OTBgames" class="ui-btn" onclick="">View Games</a>
+                    </form>
+                </div>
+            </div>
+
+            <div style="clear:both">
+
+            </div><br /><div style="width: 85%; color: #ffffff; text-shadow: none; background-color: #f48642; padding: 5px 10px 10px 10px; margin: auto; text-align: center;">
+                <div id="playAI" onclick="(document.getElementById('playAINames').style.display == 'initial') ? document.getElementById('playAINames').style.display = 'none' : document.getElementById('playAINames').style.display = 'initial'; scrollBy(0, 200);" style="width:100%; margin: auto; height:110px; text-align: center;">
                     <br />
                     <h2 id="playAIH2" style="color: #ffffff; text-shadow: none">Play AI</h2>
                 </div>
@@ -191,34 +205,18 @@
                 </div>
             </div>
 
-            <div style="clear:both"></div><br />
-            <div style="width: 85%; color: #ffffff; text-shadow: none; background-color: #86f442; padding: 5px 10px 10px 10px; margin: auto; text-align: center;">
-                <div id="playOTB" onclick="(document.getElementById('playOTBNames').style.display == 'initial') ? document.getElementById('playOTBNames').style.display = 'none' : document.getElementById('playOTBNames').style.display = 'initial'" style="width:100%; margin: auto; height:110px; text-align: center;">
-                    <br />
-                    <h2 id="playOTBH2" style="color: #ffffff; text-shadow: none">Play OTB</h2>
-                </div>
-
-                <div id="playOTBNames" style="width:100%; margin: auto; text-align: center;display:none">
-
-                    <form>
-                        <input type="text" id="playAIWhite" placeholder="White" required>
-                        <input type="text" id="playAIBlack" placeholder="Black" required>
-                        <a href="#gamePage" class="ui-btn" onclick="">Create Game</a>
-                        <a href="#OTBgames" class="ui-btn" onclick="">View Games</a>
-                    </form>
-                </div>
-            </div>
 
             <div style="clear:both"></div><br />
             <!-- end example HTML -->
             <div style="display:none;width: 85%;padding: 10px 10px 0px 10px; margin: auto; text-align: center; overflow: hidden"><span style="color: #ffffff; text-shadow: none;font-size:10px">CONNECT v1.0 - Handly LLC &copy; 2017</span></div>
+            <div style="height:0px;overflow:hidden" id="offsetter">sadf</div>
             <!--<div id="asdf"></div>-->
         </div>
     </div>
 
     <div data-role="page" id="gamePage">
 
-        <a style='text-decoration:none' href='#home'>
+        <a data-rel="back">
             <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
                 <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
                     <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
@@ -241,6 +239,18 @@
 
             <script>
                 var init = function () {
+
+                    var n = new Date().toJSON();
+
+                    window.myGame = {
+                        "White": "",
+                        "Black": "",
+                        "Result": "",
+                        "TimeCreated": Date.now(),
+                        "Date": n.slice(0, 4) + "." + n.slice(5, 7) + "." + n.slice(8, 10),
+                        "PGN": "",
+                        "FEN": ""
+                    }
 
                     // start example JS
                     window.board,
@@ -345,16 +355,17 @@
     </div>
 
     <div data-role="page" id="OTBgames">
+        <a data-rel="back">
+            <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
 
-        <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
-            <a style='text-decoration:none' href='#home'>
                 <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
                     <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
                 </div>
-            </a>
 
 
-        </div>
+
+            </div>
+        </a>
 
         <div data-role="main" class="ui-content">
 
