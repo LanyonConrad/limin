@@ -17,10 +17,6 @@
     <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
     <link rel="stylesheet" href="css/chessboard-0.3.0.css">
     <style>
-        .ui-page-theme-a {
-            background: #1a1a1a;
-        }
-
         .hidden {
             display: none;
         }
@@ -35,10 +31,57 @@
             src: url('digital-7.mono.ttf');
         }
     </style>
+    <script>
+        var myGame = {
+            "White": "",
+            "Black": "",
+            "Result": "",
+            "Date": "",
+            "PGN": "",
+            "FEN": ""
+        }
+
+        function gameStore(game) {
+            //localStorage.removeItem("games");
+            myGame.FEN = game.fen();
+
+            myGame.PGN = game.pgn();
+
+            if (localStorage.games)
+                localStorage.games = localStorage.games + "," + JSON.stringify(myGame);
+
+            else
+                localStorage.games = JSON.stringify(myGame);
+
+
+
+
+
+
+        }
+
+        function OTBgames() {
+
+            var lookin = JSON.parse("[" + localStorage.games + "]");
+
+            console.log(lookin.length);
+
+            for (var i = 0; i < lookin.length; i++) {
+                console.log(lookin[i]);
+
+                $("#gameHistory").append("<a style='text-decoration:none' href='#chessboard'><div style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + " vs. " + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>lichess &middot; tap to play</p></div></a><div style='clear:both'></div><br />");
+
+                var board = ChessBoard('board' + i, {
+                    position: lookin[i].FEN,
+                    showNotation: false
+                });
+            }
+        }
+    </script>
 </head>
 <body>
 
-    <div data-role="page" id="home" data-theme="a">
+    <div data-role="page" id="home">
         <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
             <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
                 <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
@@ -160,18 +203,170 @@
                     <form>
                         <input type="text" id="playAIWhite" placeholder="White" required>
                         <input type="text" id="playAIBlack" placeholder="Black" required>
-                        <button onclick="">Create Game</button>
-                        <button onclick="">View Games</button>
+                        <a href="#gamePage" class="ui-btn" onclick="">Create Game</a>
+                        <a href="#OTBgames" class="ui-btn" onclick="">View Games</a>
                     </form>
                 </div>
             </div>
 
-            <div style="clear:both"></div>
+            <div style="clear:both"></div><br />
             <!-- end example HTML -->
-            <div style="width: 85%;padding: 10px 10px 0px 10px; margin: auto; text-align: center; overflow: hidden"><span style="color: #ffffff; text-shadow: none;font-size:10px">CONNECT v1.0 - Handly LLC &copy; 2017</span></div>
+            <div style="display:none;width: 85%;padding: 10px 10px 0px 10px; margin: auto; text-align: center; overflow: hidden"><span style="color: #ffffff; text-shadow: none;font-size:10px">CONNECT v1.0 - Handly LLC &copy; 2017</span></div>
             <!--<div id="asdf"></div>-->
         </div>
     </div>
+
+    <div data-role="page" id="gamePage">
+
+        <a style='text-decoration:none' href='#home'>
+            <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
+                <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
+                    <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
+                </div>
+
+
+
+            </div>
+        </a>
+
+        <div data-role="main">
+            <!-- start example HTML -->
+            <div style="position:absolute;height:100%;width:100%">
+                <div id="board" style="width: 100%;position: relative;top: 50%;transform: perspective(1px) translateY(-50%)"></div>
+            </div>
+
+            <!-- end example HTML -->
+
+
+
+            <script>
+                var init = function () {
+
+                    // start example JS
+                    window.board,
+                      game = new Chess(),
+                      statusEl = $('#status'),
+                      fenEl = $('#fen'),
+                      pgnEl = $('#pgn');
+
+
+                    myGame.White = 'Robert James Fischer';
+
+                    myGame.Black = 'Mikhail Tal';
+
+                    // do not pick up pieces if the game is over
+                    // only pick up pieces for the side to move
+                    var onDragStart = function (source, piece, position, orientation) {
+                        if (game.game_over() === true ||
+                            (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+                            (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+                            return false;
+                        }
+                    };
+
+                    var onDrop = function (source, target) {
+                        // see if the move is legal
+                        var move = game.move({
+                            from: source,
+                            to: target,
+                            promotion: 'q' // NOTE: always promote to a queen for example simplicity
+                        });
+
+                        // illegal move
+                        if (move === null) return 'snapback';
+
+                        updateStatus();
+                    };
+
+                    // update the board position after the piece snap
+                    // for castling, en passant, pawn promotion
+                    var onSnapEnd = function () {
+                        board.position(game.fen());
+                    };
+
+                    var updateStatus = function () {
+                        var status = '';
+
+                        var moveColor = 'White';
+                        if (game.turn() === 'b') {
+                            moveColor = 'Black';
+                        }
+
+                        // checkmate?
+                        if (game.in_checkmate() === true) {
+                            status = 'Game over, ' + moveColor + ' is in checkmate.';
+                            myGame.Result = ((moveColor == 'Black') ? "1-0" : "0-1");
+                            gameStore(game);
+                        }
+
+                            // draw?
+                        else if (game.in_draw() === true) {
+                            status = 'Game over, drawn position';
+                            myGame.Result = "1/2-1/2";
+                            gameStore(game);
+                        }
+
+                            // game still on
+                        else {
+                            status = moveColor + ' to move';
+
+                            // check?
+                            if (game.in_check() === true) {
+                                status += ', ' + moveColor + ' is in check';
+                            }
+                        }
+
+                        console.log(status);
+                        console.log(game.fen());
+                        myGame.FEN = game.fen();
+                        console.log(game.pgn());
+                        myGame.PGN = game.pgn();
+                    };
+
+                    var cfg = {
+                        draggable: true,
+                        position: 'start',
+                        onDragStart: onDragStart,
+                        onDrop: onDrop,
+                        onSnapEnd: onSnapEnd,
+                        showNotation: false
+                    };
+                    board = ChessBoard('board', cfg);
+
+                    updateStatus();
+                    // end example JS
+
+                }; // end init()
+                $(document).on('pageshow', '#gamePage', init);
+                $(document).on('pagehide', '#gamePage', function () { board.clear(false) });
+            </script>
+        </div>
+
+    </div>
+
+    <div data-role="page" id="OTBgames">
+
+        <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
+            <a style='text-decoration:none' href='#home'>
+                <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
+                    <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
+                </div>
+            </a>
+
+
+        </div>
+
+        <div data-role="main" class="ui-content">
+
+
+            <div style="margin-top:150px;" id="gameHistory"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).on('pageshow', '#OTBgames', function () { OTBgames() });
+        $(document).on('pagehide', '#OTBgames', function () { $("#gameHistory").html("") });
+    </script>
 
     <script>
 
