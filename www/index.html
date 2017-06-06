@@ -32,14 +32,23 @@
         }
     </style>
     <script>
-        window.myGame = {
-            "White": "",
-            "Black": "",
-            "Result": "",
-            "TimeCreated": "",
-            "Date": "",
-            "PGN": "",
-            "FEN": ""
+
+
+        function initGameObject(white, black) {
+
+            var d = new Date();
+            var n = d.toJSON();
+
+            window.myGame = {
+                "White": white,
+                "Black": black,
+                "Result": "",
+                "TimeCreated": Date.now(),
+                "Date": n.slice(0, 4) + "." + n.slice(5, 7) + "." + n.slice(8, 10),
+                "PGN": "",
+                "FEN": ""
+            }
+
         }
 
         function gameStore(game) {
@@ -48,15 +57,31 @@
 
             myGame.PGN = game.pgn();
 
-            if (localStorage.games)
-                localStorage.games = localStorage.games + "," + JSON.stringify(myGame);
+            console.log(myGame);
 
+            if (localStorage.games) {
+                if (gameExists(myGame))
+                    console.log("game overwritten!");
+                else
+                    localStorage.games = localStorage.games + "," + JSON.stringify(myGame);
+            }
             else
                 localStorage.games = JSON.stringify(myGame);
 
+            // check to see of game already exists in storage
+            function gameExists(myGame) {
+                existingGames = JSON.parse("[" + localStorage.games + "]");
 
-
-
+                for (var i = 0; i < existingGames.length; i++)
+                    if (existingGames[i].TimeCreated == myGame.TimeCreated) {
+                        existingGames[i] = myGame;
+                        console.log(existingGames);
+                        bleh = JSON.stringify(existingGames);
+                        localStorage.games = (bleh.slice(1, bleh.length - 1));
+                        return true;
+                    }
+                return false;
+            }
 
 
         }
@@ -69,12 +94,18 @@
 
                 console.log(lookin.length);
 
-                for (var i = 0; i < lookin.length; i++) {
+                for (var i = lookin.length-1; i >= 0; i--) {
                     console.log(lookin[i]);
 
-                    $("#gameHistory").append("<div id='gamey" + i + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p></div><div style='clear:both'></div><br />");
+                    if (lookin[i].Result !== "") {
+                        $("#gameHistory").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='gamey" + i + "' style='width: 85%; height: 110px; background-color: rgba(26,26,26,0.75); padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div><div style='clear:both'></div><br />");
+                        $("#gamey" + i).on("vclick", function (event) { (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
+                    }
+                    else {
+                        $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='gamey" + i + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div><div style='clear:both'></div><br />");
+                        $("#gamey" + i).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")); });
 
-                    $("#gamey" + i).on("vclick", function (event) { (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
+                    }
 
                     var board = ChessBoard('board' + i, {
                         position: lookin[i].FEN,
@@ -148,7 +179,7 @@
                     <form>
                         <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIWhite" placeholder="White" required>
                         <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIBlack" placeholder="Black" required>
-                        <button onclick="(function () { myGame.White = document.getElementById('playAIWhite').value; myGame.Black = document.getElementById('playAIBlack').value; $('body').pagecontainer('change', '#gamePage') })()">Create Game</button>
+                        <button onclick="(function () { initGameObject(document.getElementById('playAIWhite').value, document.getElementById('playAIBlack').value); $('body').pagecontainer('change', '#gamePage') })()">Create Game</button>
                         <a href="#OTBgames" class="ui-btn" onclick="">View Games</a>
                     </form>
                 </div>
@@ -244,6 +275,7 @@
             <!-- start example HTML -->
             <div style="position:absolute;height:100%;width:100%">
                 <div id="board" style="width: 100%;position: relative;top: 50%;transform: perspective(1px) translateY(-50%)"></div>
+                <br /><br /><br /><br /><br /><br /><br /><p>Status: <span id="status"></span></p>
             </div>
 
             <!-- end example HTML -->
@@ -253,14 +285,11 @@
             <script>
                 var init = function () {
 
-                    var n = new Date().toJSON();
 
-                    myGame.TimeCreated = Date.now();
-                    myGame.Date = n.slice(0, 4) + "." + n.slice(5, 7) + "." + n.slice(8, 10);
 
                     // start example JS
                     window.board,
-                      game = new Chess(),
+                      window.game = (myGame.FEN == "") ? new Chess() : new Chess(myGame.FEN),
                       statusEl = $('#status'),
                       fenEl = $('#fen'),
                       pgnEl = $('#pgn');
@@ -307,14 +336,14 @@
                         if (game.in_checkmate() === true) {
                             status = 'Game over, ' + moveColor + ' is in checkmate.';
                             myGame.Result = ((moveColor == 'Black') ? "1-0" : "0-1");
-                            gameStore(game);
+
                         }
 
                             // draw?
                         else if (game.in_draw() === true) {
                             status = 'Game over, drawn position';
                             myGame.Result = "1/2-1/2";
-                            gameStore(game);
+
                         }
 
                             // game still on
@@ -327,7 +356,7 @@
                             }
                         }
 
-                        console.log(status);
+                        statusEl.html(status);
                         console.log(game.fen());
                         myGame.FEN = game.fen();
                         console.log(game.pgn());
@@ -336,7 +365,7 @@
 
                     var cfg = {
                         draggable: true,
-                        position: 'start',
+                        position: (myGame.FEN == "") ? 'start' : myGame.FEN,
                         onDragStart: onDragStart,
                         onDrop: onDrop,
                         onSnapEnd: onSnapEnd,
@@ -349,7 +378,7 @@
 
                 }; // end init()
                 $(document).on('pageshow', '#gamePage', init);
-                $(document).on('pagehide', '#gamePage', function () { board.clear(false) });
+                $(document).on('pagehide', '#gamePage', function () { gameStore(game); board.clear(false) });
             </script>
         </div>
 
@@ -370,14 +399,14 @@
 
         <div data-role="main" class="ui-content">
 
-
-            <div style="margin-top:150px;" id="gameHistory"></div>
+            <div style="margin-top:150px;" id="gameActive"></div>
+            <div id="gameHistory"></div>
         </div>
     </div>
 
     <script>
         $(document).on('pageshow', '#OTBgames', function () { OTBgames() });
-        $(document).on('pagehide', '#OTBgames', function () { $("#gameHistory").html("") });
+        $(document).on('pagehide', '#OTBgames', function () { $("#gameHistory,#gameActive").html("") });
     </script>
 
     <script>
