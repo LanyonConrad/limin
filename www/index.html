@@ -13,6 +13,7 @@
     <script src="scripts/jquery-2.1.1.min.js"></script>
     <script src="scripts/jquery.mobile-1.4.5.min.js"></script>
     <script src="scripts/chess.js"></script>
+    <script src="enginegame.js"></script>
     <script src="scripts/chessboard-0.3.0.js"></script>
     <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
     <link rel="stylesheet" href="css/chessboard-0.3.0.css">
@@ -47,6 +48,34 @@
                 "Date": n.slice(0, 4) + "." + n.slice(5, 7) + "." + n.slice(8, 10),
                 "PGN": "",
                 "FEN": ""
+            }
+
+        }
+
+        function deleteGame(id) {
+
+            TimeCreated = id.replace("Btn", "");
+
+            document.getElementById(TimeCreated).style.display = "none";
+
+            var arr = JSON.parse("[" + localStorage.games + "]");
+            yooo = JSON.stringify(removeByAttr(arr, 'TimeCreated', TimeCreated));
+            console.log(yooo);
+            console.log(TimeCreated);
+            localStorage.games = (yooo.slice(1, yooo.length - 1));
+
+            function removeByAttr(arr, attr, value) {
+                var i = arr.length;
+                while (i--) {
+                    if (arr[i]
+                        && arr[i].hasOwnProperty(attr)
+                        && (arguments.length > 2 && arr[i][attr] == value)) {
+                        console.log("found it");
+                        arr.splice(i, 1);
+
+                    }
+                }
+                return arr;
             }
 
         }
@@ -94,16 +123,17 @@
 
                 console.log(lookin.length);
 
-                for (var i = lookin.length-1; i >= 0; i--) {
+                for (var i = lookin.length - 1; i >= 0; i--) {
                     console.log(lookin[i]);
 
                     if (lookin[i].Result !== "") {
-                        $("#gameHistory").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='gamey" + i + "' style='width: 85%; height: 110px; background-color: rgba(26,26,26,0.75); padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div><div style='clear:both'></div><br />");
-                        $("#gamey" + i).on("vclick", function (event) { (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
+                        $("#gameHistory").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: rgba(26,26,26,0.75); padding: 5px 10px 10px 10px; margin: auto; margin-bottom:20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p><button id='" + lookin[i].TimeCreated + "Btn'>Delete</button></div>");
+                        $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
+                        $("#" + lookin[i].TimeCreated + "Btn").on("vclick", function (event) { event.preventDefault(); deleteGame(this.id) });
                     }
                     else {
-                        $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='gamey" + i + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div><div style='clear:both'></div><br />");
-                        $("#gamey" + i).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")); });
+                        $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-bottom: 20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div>");
+                        $("#"+lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")); });
 
                     }
 
@@ -288,11 +318,13 @@
 
 
                     // start example JS
-                    window.board,
-                      window.game = (myGame.FEN == "") ? new Chess() : new Chess(myGame.FEN),
-                      statusEl = $('#status'),
-                      fenEl = $('#fen'),
-                      pgnEl = $('#pgn');
+                    window.board;
+                    window.game = new Chess();
+                    if (myGame.PGN != "")
+                        game.load_pgn(myGame.PGN);
+                    statusEl = $('#status');
+                    fenEl = $('#fen');
+                    pgnEl = $('#pgn');
 
                     // do not pick up pieces if the game is over
                     // only pick up pieces for the side to move
@@ -316,6 +348,7 @@
                         if (move === null) return 'snapback';
 
                         updateStatus();
+                        sendMove(source + target);
                     };
 
                     // update the board position after the piece snap
@@ -375,6 +408,84 @@
 
                     updateStatus();
                     // end example JS
+
+
+                    function sendMove(move) {
+
+                            stockfish.postMessage("position fen " + game.fen());
+                        stockfish.postMessage("go");
+
+
+                        console.log(game.pgn());
+                        console.log(game.ascii());
+
+                        //if (game.game_over()) {
+                        //    if (game.in_checkmate()) {
+                        //        var winner = (game.get(target).color == 'w') ? "White" : "Black";
+                        //        setTimeout((function () { alert("Game Over!!! " + winner + " wins!") }), 1000);
+                        //    }
+                        //    else
+                        //        setTimeout((function () { alert("Game Over!!! It's a draw!") }), 1000);
+                        //}
+
+
+                    }
+
+                    var stockfish = new Worker("stockfish.js");
+                    stockfish.postMessage("uci");
+                    stockfish.postMessage("ucinewgame");
+                    stockfish.postMessage("setoption name Skill Level value 4");
+                    stockfish.postMessage("position startpos");
+                    stockfish.postMessage("go");
+
+
+
+                    stockfish.onmessage = function (event) {
+
+
+
+                        console.log(event.data);
+
+                        if (event.data.includes("bestmove")) {
+
+                            move = event.data.substring(9, 14);
+                            console.log("log this move: " + move);
+
+                            var source = move.substring(0, 2);
+                            var target = move.substring(2, 4);
+                            var promo = move.substring(4, 5);
+
+                            console.log(game.move({
+                                from: source,
+                                to: target,
+                                promotion: promo
+                            }));
+
+                            console.log(game.pgn());
+                            console.log(game.ascii());
+
+
+                            board.position(game.fen());
+
+                            updateStatus();
+
+                            //if (game.game_over()) {
+                            //    if (game.in_checkmate()) {
+                            //        var winner = (game.get(target).color == 'w') ? "White" : "Black";
+                            //        setTimeout((function () { alert("Game Over!!! " + winner + " wins!") }), 1000);
+                            //    }
+                            //    else
+                            //        setTimeout((function () { alert("Game Over!!! It's a draw!") }), 1000);
+                            //}
+
+                        }
+
+
+
+                    };
+
+
+
 
                 }; // end init()
                 $(document).on('pageshow', '#gamePage', init);

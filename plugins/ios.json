@@ -31,6 +31,12 @@
         },
         "cordova-plugin-device": {
             "PACKAGE_NAME": "io.cordova.myappdbd4a7"
+        },
+        "ionic-plugin-keyboard": {
+            "PACKAGE_NAME": "io.cordova.myappdbd4a7"
+        },
+        "cordova-plugin-fullscreen": {
+            "PACKAGE_NAME": "io.cordova.myappdbd4a7"
         }
     },
     "dependent_plugins": {}
