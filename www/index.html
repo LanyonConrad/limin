@@ -35,7 +35,7 @@
     <script>
 
 
-        function initGameObject(white, black) {
+        function initGameObject(white, black, type) {
 
             var d = new Date();
             var n = d.toJSON();
@@ -44,6 +44,7 @@
                 "White": white,
                 "Black": black,
                 "Result": "",
+                "Type": type,
                 "TimeCreated": Date.now(),
                 "Date": n.slice(0, 4) + "." + n.slice(5, 7) + "." + n.slice(8, 10),
                 "PGN": "",
@@ -81,7 +82,7 @@
         }
 
         function gameStore(game) {
-            //localStorage.removeItem("games");
+
             myGame.FEN = game.fen();
 
             myGame.PGN = game.pgn();
@@ -115,7 +116,9 @@
 
         }
 
-        function OTBgames() {
+        function loadGames(gameType) {
+
+            $('body').pagecontainer('change', '#gameLister');
 
             if (localStorage.games !== undefined) {
 
@@ -126,21 +129,23 @@
                 for (var i = lookin.length - 1; i >= 0; i--) {
                     console.log(lookin[i]);
 
-                    if (lookin[i].Result !== "") {
-                        $("#gameHistory").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: rgba(26,26,26,0.75); padding: 5px 10px 10px 10px; margin: auto; margin-bottom:20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p><button id='" + lookin[i].TimeCreated + "Btn'>Delete</button></div>");
-                        $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
-                        $("#" + lookin[i].TimeCreated + "Btn").on("vclick", function (event) { event.preventDefault(); deleteGame(this.id) });
-                    }
-                    else {
-                        $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-bottom: 20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div>");
-                        $("#"+lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")); });
+                    if (lookin[i].Type == gameType) {
+                        if (lookin[i].Result !== "") {
+                            $("#gameHistory").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: rgba(26,26,26,0.75); padding: 5px 10px 10px 10px; margin: auto; margin-bottom:20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p><button id='" + lookin[i].TimeCreated + "Btn'>Delete</button></div>");
+                            $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
+                            $("#" + lookin[i].TimeCreated + "Btn").on("vclick", function (event) { event.preventDefault(); deleteGame(this.id) });
+                        }
+                        else {
+                            $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-bottom: 20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div>");
+                            $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")); });
 
-                    }
+                        }
 
-                    var board = ChessBoard('board' + i, {
-                        position: lookin[i].FEN,
-                        showNotation: false
-                    });
+                        var board = ChessBoard('board' + i, {
+                            position: lookin[i].FEN,
+                            showNotation: false
+                        });
+                    }
                 }
             }
         }
@@ -207,15 +212,36 @@
                 <div id="playOTBNames" style="width:100%; margin: auto; text-align: center;display:none">
 
                     <form>
-                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIWhite" placeholder="White" required>
-                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIBlack" placeholder="Black" required>
-                        <button onclick="(function () { initGameObject(document.getElementById('playAIWhite').value, document.getElementById('playAIBlack').value); $('body').pagecontainer('change', '#gamePage') })()">Create Game</button>
-                        <a href="#OTBgames" class="ui-btn" onclick="">View Games</a>
+                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIWhite" placeholder="White">
+                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIBlack" placeholder="Black">
+                        <button id="createOTBGameBtn">Create Game</button>
+                        <script>
+                            $("#createOTBGameBtn").on("vclick", function (event) {
+                                event.preventDefault();
+                                whiteName = document.getElementById('playAIWhite').value;
+                                blackName = document.getElementById('playAIBlack').value;
+                                if (blackName != "" && whiteName != "") {
+                                    initGameObject(whiteName, blackName, "OTB");
+                                    $('body').pagecontainer('change', '#gamePage');
+                                }
+                                else
+                                    alert("Enter a name!");
+                            });
+                        </script>
+                        <button id="viewOTBGames">View Games</button>
+                        <script>
+                            $("#viewOTBGames").on("vclick", function (event) {
+                                event.preventDefault();
+
+                                loadGames("OTB");
+
+                            });
+                        </script>
                     </form>
                 </div>
             </div>
 
-            <div style="clear:both">
+            <div id="playAIdiv" style="clear:both">
 
             </div><br /><div style="width: 85%; color: #ffffff; text-shadow: none; background-color: #f48642; padding: 5px 10px 10px 10px; margin: auto; text-align: center;">
                 <div id="playAI" onclick="(document.getElementById('playAINames').style.display == 'initial') ? document.getElementById('playAINames').style.display = 'none' : document.getElementById('playAINames').style.display = 'initial'; scrollBy(0, 200);" style="width:100%; margin: auto; height:110px; text-align: center;">
@@ -225,8 +251,7 @@
 
                 <div id="playAINames" style="width:100%; margin: auto; text-align: center;display:none">
                     <form>
-                        <select id="playOTBWhite">
-                            <option value="you">You</option>
+                        <select id="stockfishLevel">
                             <option value="0">Stockfish 0</option>
                             <option value="1">Stockfish 1</option>
                             <option value="2">Stockfish 2</option>
@@ -249,32 +274,35 @@
                             <option value="19">Stockfish 19</option>
                             <option value="20">Stockfish 20</option>
                         </select>
-                        <select id="playOTBBlack">
-                            <option value="you">You</option>
-                            <option value="0">Stockfish 0</option>
-                            <option value="1">Stockfish 1</option>
-                            <option value="2">Stockfish 2</option>
-                            <option value="3">Stockfish 3</option>
-                            <option value="4">Stockfish 4</option>
-                            <option value="5">Stockfish 5</option>
-                            <option value="6" selected>Stockfish 6</option>
-                            <option value="7">Stockfish 7</option>
-                            <option value="8">Stockfish 8</option>
-                            <option value="9">Stockfish 9</option>
-                            <option value="10">Stockfish 10</option>
-                            <option value="11">Stockfish 11</option>
-                            <option value="12">Stockfish 12</option>
-                            <option value="13">Stockfish 13</option>
-                            <option value="14">Stockfish 14</option>
-                            <option value="15">Stockfish 15</option>
-                            <option value="16">Stockfish 16</option>
-                            <option value="17">Stockfish 17</option>
-                            <option value="18">Stockfish 18</option>
-                            <option value="19">Stockfish 19</option>
-                            <option value="20">Stockfish 20</option>
-                        </select>
-                        <button onclick="">Create Game</button>
-                        <button onclick="">View Games</button>
+                        <button id="createAIGameWhiteBtn">Play as White</button>
+                        <button id="createAIGameBlackBtn">Play as Black</button>
+                        <script>
+                            $("#createAIGameWhiteBtn,#createAIGameBlackBtn").on("vclick", function (event) {
+                                event.preventDefault();
+                                stockfishLevel = document.getElementById('stockfishLevel');
+                                if (this.id == "createAIGameWhiteBtn") {
+                                    whiteName = "You";
+                                    blackName = stockfishLevel.options[stockfishLevel.selectedIndex].text;
+                                }
+                                else {
+                                    blackName = "You";
+                                    whiteName = stockfishLevel.options[stockfishLevel.selectedIndex].text;
+                                }
+
+                                initGameObject(whiteName, blackName, "AI");
+                                $('body').pagecontainer('change', '#gamePage');
+
+                            });
+                        </script>
+                        <button id="viewAIGames">View Games</button>
+                        <script>
+                            $("#viewAIGames").on("vclick", function (event) {
+                                event.preventDefault();
+
+                                loadGames("AI");
+
+                            });
+                        </script>
                     </form>
                 </div>
             </div>
@@ -290,7 +318,7 @@
 
     <div data-role="page" id="gamePage">
 
-        <a data-rel="back">
+        <a href="#home">
             <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
                 <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
                     <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
@@ -348,7 +376,7 @@
                         if (move === null) return 'snapback';
 
                         updateStatus();
-                        sendMove(source + target);
+                        sendMove();
                     };
 
                     // update the board position after the piece snap
@@ -360,10 +388,7 @@
                     var updateStatus = function () {
                         var status = '';
 
-                        var moveColor = 'White';
-                        if (game.turn() === 'b') {
-                            moveColor = 'Black';
-                        }
+                        var moveColor = (game.turn() === 'b') ? 'Black' : 'White';
 
                         // checkmate?
                         if (game.in_checkmate() === true) {
@@ -410,11 +435,12 @@
                     // end example JS
 
 
-                    function sendMove(move) {
+                    function sendMove() {
 
+                        if (myGame.Type == "AI" && game.turn() == AIcolor) {
                             stockfish.postMessage("position fen " + game.fen());
-                        stockfish.postMessage("go");
-
+                            stockfish.postMessage("go");
+                        }
 
                         console.log(game.pgn());
                         console.log(game.ascii());
@@ -431,61 +457,67 @@
 
                     }
 
-                    var stockfish = new Worker("stockfish.js");
-                    stockfish.postMessage("uci");
-                    stockfish.postMessage("ucinewgame");
-                    stockfish.postMessage("setoption name Skill Level value 4");
-                    stockfish.postMessage("position startpos");
-                    stockfish.postMessage("go");
+                    if (myGame.Type == "AI") {
+
+                        AIcolor = (myGame.White == "You") ? 'b' : 'w';
+
+                        var stockfish = new Worker("stockfish.js");
+                        stockfish.postMessage("uci");
+                        stockfish.postMessage("ucinewgame");
+                        beesee = ((AIcolor == 'w')?myGame.White:myGame.Black);
+                        stockfish.postMessage("setoption name Skill Level value "+beesee.replace("Stockfish ",""));
+                        console.log("level is " + beesee);
+
+                        sendMove();
 
 
 
-                    stockfish.onmessage = function (event) {
+                        stockfish.onmessage = function (event) {
 
 
 
-                        console.log(event.data);
+                            console.log(event.data);
 
-                        if (event.data.includes("bestmove")) {
+                            if (event.data.includes("bestmove")) {
 
-                            move = event.data.substring(9, 14);
-                            console.log("log this move: " + move);
+                                move = event.data.substring(9, 14);
+                                console.log("log this move: " + move);
 
-                            var source = move.substring(0, 2);
-                            var target = move.substring(2, 4);
-                            var promo = move.substring(4, 5);
+                                var source = move.substring(0, 2);
+                                var target = move.substring(2, 4);
+                                var promo = move.substring(4, 5);
 
-                            console.log(game.move({
-                                from: source,
-                                to: target,
-                                promotion: promo
-                            }));
+                                console.log(game.move({
+                                    from: source,
+                                    to: target,
+                                    promotion: promo
+                                }));
 
-                            console.log(game.pgn());
-                            console.log(game.ascii());
-
-
-                            board.position(game.fen());
-
-                            updateStatus();
-
-                            //if (game.game_over()) {
-                            //    if (game.in_checkmate()) {
-                            //        var winner = (game.get(target).color == 'w') ? "White" : "Black";
-                            //        setTimeout((function () { alert("Game Over!!! " + winner + " wins!") }), 1000);
-                            //    }
-                            //    else
-                            //        setTimeout((function () { alert("Game Over!!! It's a draw!") }), 1000);
-                            //}
-
-                        }
+                                console.log(game.pgn());
+                                console.log(game.ascii());
 
 
+                                board.position(game.fen());
 
-                    };
+                                updateStatus();
+
+                                //if (game.game_over()) {
+                                //    if (game.in_checkmate()) {
+                                //        var winner = (game.get(target).color == 'w') ? "White" : "Black";
+                                //        setTimeout((function () { alert("Game Over!!! " + winner + " wins!") }), 1000);
+                                //    }
+                                //    else
+                                //        setTimeout((function () { alert("Game Over!!! It's a draw!") }), 1000);
+                                //}
+
+                            }
 
 
 
+                        };
+
+
+                    }
 
                 }; // end init()
                 $(document).on('pageshow', '#gamePage', init);
@@ -495,8 +527,8 @@
 
     </div>
 
-    <div data-role="page" id="OTBgames">
-        <a data-rel="back">
+    <div data-role="page" id="gameLister">
+        <a href="#home">
             <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
 
                 <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
@@ -516,8 +548,7 @@
     </div>
 
     <script>
-        $(document).on('pageshow', '#OTBgames', function () { OTBgames() });
-        $(document).on('pagehide', '#OTBgames', function () { $("#gameHistory,#gameActive").html("") });
+        $(document).on('pagehide', '#gameLister', function () { $("#gameHistory,#gameActive").html("") });
     </script>
 
     <script>
@@ -658,7 +689,7 @@
 
             if (sendSource != null && sendTarget != null) {
                 console.log("sending move " + sendSource + "" + sendTarget);
-                sendMove(sendSource, sendTarget);
+                sendLichessMove(sendSource, sendTarget);
 
                 sendSource = null;
                 sendTarget = null;

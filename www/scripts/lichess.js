@@ -36,10 +36,10 @@ function lichessOnGame() {
 
 }
 
-function openGame(id,i) {
-    
+function openGame(id, i) {
+
     if (socket != null) {
-        
+
         setTimeout(function () { openGame(id, i) }, 250);
         return false;
     }
@@ -282,7 +282,7 @@ function gameConnect(gameInfo) {
 
     window.gameId = gameInfo.game.id;
 
-    
+
 
     console.log("connecting to game " + gameId);
 
@@ -308,7 +308,7 @@ function gameConnect(gameInfo) {
 
         console.log("Connected to " + gameId);
 
-        
+
         document.getElementById(gameId).style.backgroundColor = "#86f442";
 
         latestMove = null;
@@ -394,26 +394,30 @@ var lightLED = function () {
     ble.write(device_id, service_id, characteristic_id, data2.buffer);
 }
 
-function sendMove(source, target) {
+function sendLichessMove(source, target) {
 
-    var move = {
-        t: 'move',
-        d: {
-            from: source,
-            to: target
-        }
-    };
+    if (socket != null) { //this condition probably not necessary...
+        var move = {
+            t: 'move',
+            d: {
+                from: source,
+                to: target
+            }
+        };
 
-    window.sentMove = source + target;
+        window.sentMove = source + target;
 
-    sentMove = source + target;
+        sentMove = source + target;
 
-    socket.send(JSON.stringify(move));
-    console.log("move sent to lichess!");
-    window.awaitingAck = true;
+        socket.send(JSON.stringify(move));
+        console.log("move sent to lichess!");
+        window.awaitingAck = true;
 
-    window.sendSource = null;
-    window.sendTarget = null;
+        window.sendSource = null;
+        window.sendTarget = null;
+    }
+
+    
 
 }
 
@@ -508,26 +512,26 @@ function digestMSG(eventData) {
 
 function launchApp() {
 
-    if(device.platform == "Android")
-    try {
-        startApp.set({
-            "application": "org.lichess.mobileapp"
-        }).start(function () { /* success */
-            console.log("launched!");
-        }, function (error) { /* fail */
-            console.log(error);
-        });
-    }
-    catch (err){}
+    if (device.platform == "Android")
+        try {
+            startApp.set({
+                "application": "org.lichess.mobileapp"
+            }).start(function () { /* success */
+                console.log("launched!");
+            }, function (error) { /* fail */
+                console.log(error);
+            });
+        }
+        catch (err) { }
 
-    if(device.platform == "iOS")
-    try{
-        startApp.set("lichess://").start(function () { /* success */
-            console.log("launched!");
-        }, function (error) { /* fail */
-            console.log(error);
-        });
-    }
-    catch(err){}
+    if (device.platform == "iOS")
+        try {
+            startApp.set("lichess://").start(function () { /* success */
+                console.log("launched!");
+            }, function (error) { /* fail */
+                console.log(error);
+            });
+        }
+        catch (err) { }
 
 }
