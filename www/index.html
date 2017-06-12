@@ -51,6 +51,10 @@
                 "FEN": ""
             }
 
+            sendSource = null;
+            sendTarget = null;
+
+            latestMove = null;
         }
 
         function deleteGame(id) {
@@ -159,8 +163,8 @@
                 <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
             </div>
             <div style="float:right;padding:0px 4px;">
-                <div id="deviceList"></div><div id="statusDiv"></div>
-                <div id="heighter">hhk</div>
+                <div id="deviceList"></div><div id="statusDiv" style="color: rgba(26,26,26,0.75)"></div>
+                <!--<div id="heighter">hhk</div>-->
             </div>
 
         </div>
@@ -341,6 +345,90 @@
 
 
             <script>
+
+                function mover(source, target) {
+                    // see if the move is legal
+                    var move = game.move({
+                        from: source,
+                        to: target,
+                        promotion: 'q' // NOTE: always promote to a queen for example simplicity
+                    });
+
+                    // illegal move
+                    if (move === null)
+                        return 'snapback';
+
+                    sendMove();
+                }
+
+                var updateStatus = function () {
+
+                    var status = '';
+
+                    var moveColor = (game.turn() === 'b') ? 'Black' : 'White';
+
+                    // checkmate?
+                    if (game.in_checkmate() === true) {
+                        status = 'Game over, ' + moveColor + ' is in checkmate.';
+                        myGame.Result = ((moveColor == 'Black') ? "1-0" : "0-1");
+
+                    }
+
+                        // draw?
+                    else if (game.in_draw() === true) {
+                        status = 'Game over, drawn position';
+                        myGame.Result = "1/2-1/2";
+
+                    }
+
+                        // game still on
+                    else {
+                        status = moveColor + ' to move';
+
+                        // check?
+                        if (game.in_check() === true) {
+                            status += ', ' + moveColor + ' is in check';
+                        }
+                    }
+
+                    statusEl.html(status);
+                    console.log(game.fen());
+                    myGame.FEN = game.fen();
+                    console.log(game.pgn());
+                    myGame.PGN = game.pgn();
+                };
+
+
+                function sendMove() {
+
+                    if (myGame.Type == "AI" && game.turn() == AIcolor) {
+                        stockfish.postMessage("position fen " + game.fen());
+                        stockfish.postMessage("go");
+
+                        
+                            
+                    }
+
+                    console.log(game.pgn());
+                    console.log(game.ascii());
+
+                    board.position(game.fen());
+
+                    updateStatus();
+
+                    //if (game.game_over()) {
+                    //    if (game.in_checkmate()) {
+                    //        var winner = (game.get(target).color == 'w') ? "White" : "Black";
+                    //        setTimeout((function () { alert("Game Over!!! " + winner + " wins!") }), 1000);
+                    //    }
+                    //    else
+                    //        setTimeout((function () { alert("Game Over!!! It's a draw!") }), 1000);
+                    //}
+
+
+                }
+
+
                 var init = function () {
 
 
@@ -365,18 +453,11 @@
                     };
 
                     var onDrop = function (source, target) {
-                        // see if the move is legal
-                        var move = game.move({
-                            from: source,
-                            to: target,
-                            promotion: 'q' // NOTE: always promote to a queen for example simplicity
-                        });
 
-                        // illegal move
-                        if (move === null) return 'snapback';
 
-                        updateStatus();
-                        sendMove();
+
+                        mover(source, target);
+
                     };
 
                     // update the board position after the piece snap
@@ -385,41 +466,7 @@
                         board.position(game.fen());
                     };
 
-                    var updateStatus = function () {
-                        var status = '';
 
-                        var moveColor = (game.turn() === 'b') ? 'Black' : 'White';
-
-                        // checkmate?
-                        if (game.in_checkmate() === true) {
-                            status = 'Game over, ' + moveColor + ' is in checkmate.';
-                            myGame.Result = ((moveColor == 'Black') ? "1-0" : "0-1");
-
-                        }
-
-                            // draw?
-                        else if (game.in_draw() === true) {
-                            status = 'Game over, drawn position';
-                            myGame.Result = "1/2-1/2";
-
-                        }
-
-                            // game still on
-                        else {
-                            status = moveColor + ' to move';
-
-                            // check?
-                            if (game.in_check() === true) {
-                                status += ', ' + moveColor + ' is in check';
-                            }
-                        }
-
-                        statusEl.html(status);
-                        console.log(game.fen());
-                        myGame.FEN = game.fen();
-                        console.log(game.pgn());
-                        myGame.PGN = game.pgn();
-                    };
 
                     var cfg = {
                         draggable: true,
@@ -435,37 +482,17 @@
                     // end example JS
 
 
-                    function sendMove() {
 
-                        if (myGame.Type == "AI" && game.turn() == AIcolor) {
-                            stockfish.postMessage("position fen " + game.fen());
-                            stockfish.postMessage("go");
-                        }
-
-                        console.log(game.pgn());
-                        console.log(game.ascii());
-
-                        //if (game.game_over()) {
-                        //    if (game.in_checkmate()) {
-                        //        var winner = (game.get(target).color == 'w') ? "White" : "Black";
-                        //        setTimeout((function () { alert("Game Over!!! " + winner + " wins!") }), 1000);
-                        //    }
-                        //    else
-                        //        setTimeout((function () { alert("Game Over!!! It's a draw!") }), 1000);
-                        //}
-
-
-                    }
 
                     if (myGame.Type == "AI") {
 
                         AIcolor = (myGame.White == "You") ? 'b' : 'w';
 
-                        var stockfish = new Worker("stockfish.js");
+                        window.stockfish = new Worker("stockfish.js");
                         stockfish.postMessage("uci");
                         stockfish.postMessage("ucinewgame");
-                        beesee = ((AIcolor == 'w')?myGame.White:myGame.Black);
-                        stockfish.postMessage("setoption name Skill Level value "+beesee.replace("Stockfish ",""));
+                        beesee = ((AIcolor == 'w') ? myGame.White : myGame.Black);
+                        stockfish.postMessage("setoption name Skill Level value " + beesee.replace("Stockfish ", ""));
                         console.log("level is " + beesee);
 
                         sendMove();
@@ -496,8 +523,17 @@
                                 console.log(game.pgn());
                                 console.log(game.ascii());
 
-
+                                
                                 board.position(game.fen());
+
+                                    if (clearInterval(writer)); // make sure cleared before setting
+                                    writer = setInterval(lightLED, 250);
+
+                                    latestMove = source+target;
+
+                                    writeSource = squares.indexOf(latestMove.slice(0, 2));
+                                    writeTarget = squares.indexOf(latestMove.slice(2, 4));
+                                
 
                                 updateStatus();
 
@@ -668,31 +704,53 @@
         }
 
         function sendSquares(square, data) {
-
-            if (square in dests) {
-
-                sendSource = square;
-
-
-                clearInterval(writer);
-                latestMove = null;
-                if (data)
-                    ble.write(device_id, service_id, characteristic_id, data.buffer);
-                console.log("sendSource is now " + sendSource);
-
-            }
-            else if (sendSource != null)
-                if (dests[sendSource].includes(square)) {
-                    sendTarget = square;
-                    console.log("sendTarget is now " + sendTarget);
+            console.log("in sendSquares()");
+            if (myGame.Type == "lichess") {
+                console.log("myGame.Type == lichess");
+                if (square in dests) {
+                    sendSource = square;
+                    clearInterval(writer);
+                    latestMove = null;
+                    if (data)
+                        ble.write(device_id, service_id, characteristic_id, data.buffer);
+                    console.log("sendSource is now " + sendSource);
                 }
-
-            if (sendSource != null && sendTarget != null) {
-                console.log("sending move " + sendSource + "" + sendTarget);
-                sendLichessMove(sendSource, sendTarget);
-
-                sendSource = null;
-                sendTarget = null;
+                else if (sendSource != null)
+                    if (dests[sendSource].includes(square)) {
+                        sendTarget = square;
+                        console.log("sendTarget is now " + sendTarget);
+                    }
+                if (sendSource != null && sendTarget != null) {
+                    console.log("sending move " + sendSource + "" + sendTarget);
+                    sendLichessMove(sendSource, sendTarget);
+                    sendSource = null;
+                    sendTarget = null;
+                }
+            }
+            else if (myGame.Type == "AI" || myGame.Type == "OTB") {
+                console.log("myGame.Type is "+myGame.Type);
+                if (game.moves({ square: square })[0] !== undefined) {
+                    console.log(game.moves({ square: square }));
+                    sendSource = square;
+                    clearInterval(writer);
+                    latestMove = null;
+                    if (data)
+                        ble.write(device_id, service_id, characteristic_id, data.buffer);
+                    console.log("sendSource is now " + sendSource);
+                }
+                else if (sendSource != null) {
+                    if ((game.moves({ square: sendSource }).toString()).includes(square)) {
+                        console.log(game.moves({ square: sendSource }));
+                        sendTarget = square;
+                        console.log("sendTarget is now " + sendTarget);
+                    }
+                    if (sendSource != null && sendTarget != null) {
+                        console.log("sending move " + sendSource + "" + sendTarget);
+                        mover(sendSource, sendTarget);
+                        sendSource = null;
+                        sendTarget = null;
+                    }
+                }
             }
         }
 

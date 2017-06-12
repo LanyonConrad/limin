@@ -23,7 +23,7 @@
 
         $('#createOTBGame-btn').click(createOTBGame);
 
-        setInterval(function () { $("#heighter").html(window.innerHeight) },1000);
+        //setInterval(function () { $("#heighter").html(window.innerHeight) },1000);
 
         window.addEventListener('native.keyboardshow', keyboardShowHandler);
         function keyboardShowHandler(e) { // fired when keyboard enabled
