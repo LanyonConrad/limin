@@ -34,22 +34,32 @@
     </style>
     <script>
 
+        window.myGame = {
+            "White": "",
+            "Black": "",
+            "Result": "",
+            "Type": "",
+            "TimeCreated": "",
+            "Date": "",
+            "PGN": "",
+            "FEN": ""
+        };
 
         function initGameObject(white, black, type) {
 
             var d = new Date();
             var n = d.toJSON();
 
-            window.myGame = {
+            myGame = {
                 "White": white,
                 "Black": black,
-                "Result": "",
+                "Result": "", // this is important so that update status doesn't think game is over (if myGame.Result was already set to over)
                 "Type": type,
                 "TimeCreated": Date.now(),
                 "Date": n.slice(0, 4) + "." + n.slice(5, 7) + "." + n.slice(8, 10),
-                "PGN": "",
+                "PGN": "", // this is important so that the init function doesn't think you should be continuing a game (if myGame.PGN was already set)
                 "FEN": ""
-            }
+            };
 
             sendSource = null;
             sendTarget = null;
@@ -87,10 +97,6 @@
 
         function gameStore(game) {
 
-            myGame.FEN = game.fen();
-
-            myGame.PGN = game.pgn();
-
             console.log(myGame);
 
             if (localStorage.games) {
@@ -120,9 +126,11 @@
 
         }
 
-        function loadGames(gameType) {
+        function loadGames() {
 
-            $('body').pagecontainer('change', '#gameLister');
+            $("#gameHistory,#gameActive").html("");
+
+            console.log(myGame.Type);
 
             if (localStorage.games !== undefined) {
 
@@ -133,7 +141,7 @@
                 for (var i = lookin.length - 1; i >= 0; i--) {
                     console.log(lookin[i]);
 
-                    if (lookin[i].Type == gameType) {
+                    if (lookin[i].Type == myGame.Type) {
                         if (lookin[i].Result !== "") {
                             $("#gameHistory").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: rgba(26,26,26,0.75); padding: 5px 10px 10px 10px; margin: auto; margin-bottom:20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p><button id='" + lookin[i].TimeCreated + "Btn'>Delete</button></div>");
                             $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
@@ -156,7 +164,9 @@
     </script>
 </head>
 <body>
-
+    <script>
+        $(document).on('pagebeforeshow', '#home', function () { document.getElementById('playOTBNames').style.display = 'none'; document.getElementById('playAINames').style.display = 'none' });
+    </script>
     <div data-role="page" id="home">
         <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
             <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
@@ -237,7 +247,9 @@
                             $("#viewOTBGames").on("vclick", function (event) {
                                 event.preventDefault();
 
-                                loadGames("OTB");
+                                myGame.Type = "OTB";
+
+                                $('body').pagecontainer('change', '#gameLister');
 
                             });
                         </script>
@@ -303,7 +315,9 @@
                             $("#viewAIGames").on("vclick", function (event) {
                                 event.preventDefault();
 
-                                loadGames("AI");
+                                myGame.Type = "AI";
+
+                                $('body').pagecontainer('change', '#gameLister');
 
                             });
                         </script>
@@ -322,7 +336,7 @@
 
     <div data-role="page" id="gamePage">
 
-        <a href="#home">
+        <a href="#" data-rel="back">
             <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
                 <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
                     <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
@@ -342,8 +356,6 @@
 
             <!-- end example HTML -->
 
-
-
             <script>
 
                 function mover(source, target) {
@@ -361,41 +373,56 @@
                     sendMove();
                 }
 
-                var updateStatus = function () {
+                var updateStatus = function (extraStuff) {
 
-                    var status = '';
+                    if (myGame.Result == "") {
 
-                    var moveColor = (game.turn() === 'b') ? 'Black' : 'White';
+                        var status = '';
 
-                    // checkmate?
-                    if (game.in_checkmate() === true) {
-                        status = 'Game over, ' + moveColor + ' is in checkmate.';
-                        myGame.Result = ((moveColor == 'Black') ? "1-0" : "0-1");
+                        var moveColor = (game.turn() === 'b') ? 'Black' : 'White';
 
-                    }
+                        // checkmate?
+                        if (game.in_checkmate() === true) {
+                            status = 'Game over, ' + moveColor + ' is in checkmate.';
+                            myGame.Result = ((moveColor == 'Black') ? "1-0" : "0-1");
 
-                        // draw?
-                    else if (game.in_draw() === true) {
-                        status = 'Game over, drawn position';
-                        myGame.Result = "1/2-1/2";
-
-                    }
-
-                        // game still on
-                    else {
-                        status = moveColor + ' to move';
-
-                        // check?
-                        if (game.in_check() === true) {
-                            status += ', ' + moveColor + ' is in check';
                         }
-                    }
 
-                    statusEl.html(status);
-                    console.log(game.fen());
-                    myGame.FEN = game.fen();
-                    console.log(game.pgn());
-                    myGame.PGN = game.pgn();
+                            // forfiet?
+                        else if (extraStuff == "resign") {
+                            status = 'Game over, ' + moveColor + ' has resigned.';
+                            myGame.Result = ((moveColor == 'Black') ? "1-0" : "0-1");
+                        }
+
+                            // takeback?
+                        else if (extraStuff == "takeback") {
+                            game.undo();
+                            board.position(game.fen());
+                        }
+
+                            // draw?
+                        else if (game.in_draw() === true || extraStuff == "draw") {
+                            status = 'Game over, draw game';
+                            myGame.Result = "1/2-1/2";
+                        }
+
+                            // game still on
+                        else {
+                            status = moveColor + ' to move';
+
+                            // check?
+                            if (game.in_check() === true) {
+                                status += ', ' + moveColor + ' is in check';
+                            }
+                        }
+
+                        statusEl.html(status);
+                        console.log(game.fen());
+                        myGame.FEN = game.fen();
+                        console.log(game.pgn());
+                        myGame.PGN = game.pgn();
+                        gameStore(game);
+                    }
                 };
 
 
@@ -405,8 +432,8 @@
                         stockfish.postMessage("position fen " + game.fen());
                         stockfish.postMessage("go");
 
-                        
-                            
+
+
                     }
 
                     console.log(game.pgn());
@@ -431,7 +458,9 @@
 
                 var init = function () {
 
-
+                    // end lichess stuffs
+                    if (lobbySocket != null)
+                        lobbySocket.close();
 
                     // start example JS
                     window.board;
@@ -523,17 +552,17 @@
                                 console.log(game.pgn());
                                 console.log(game.ascii());
 
-                                
+
                                 board.position(game.fen());
 
-                                    if (clearInterval(writer)); // make sure cleared before setting
-                                    writer = setInterval(lightLED, 250);
+                                if (clearInterval(writer)); // make sure cleared before setting
+                                writer = setInterval(lightLED, 250);
 
-                                    latestMove = source+target;
+                                latestMove = source + target;
 
-                                    writeSource = squares.indexOf(latestMove.slice(0, 2));
-                                    writeTarget = squares.indexOf(latestMove.slice(2, 4));
-                                
+                                writeSource = squares.indexOf(latestMove.slice(0, 2));
+                                writeTarget = squares.indexOf(latestMove.slice(2, 4));
+
 
                                 updateStatus();
 
@@ -557,14 +586,30 @@
 
                 }; // end init()
                 $(document).on('pageshow', '#gamePage', init);
-                $(document).on('pagehide', '#gamePage', function () { gameStore(game); board.clear(false) });
+                $(document).on('pagehide', '#gamePage', function () { board.clear(false) });
+            </script>
+
+
+            <div style="position:absolute;bottom:0px;height:60px;line-height:60px;width:100%;text-align:center;overflow:hidden;border-top:1px solid rgba(26,26,26,0.75)">
+                <div style="display:inline-block">
+                    <div style="font-weight:bold;padding: 0px 20px;float:left" id="resignBtn">Resign</div>
+                    <div style="font-weight:bold;padding: 0px 20px;float:left" id="takebackBtn">Takeback</div>
+                    <div style="font-weight:bold;padding: 0px 20px;float:left" id="drawBtn">Draw</div>
+                </div>
+            </div>
+
+
+            <script>
+                $("#resignBtn").on("vclick", function (event) { event.preventDefault(); updateStatus("resign") });
+                $("#drawBtn").on("vclick", function (event) { event.preventDefault(); updateStatus("draw") });
+                $("#takebackBtn").on("vclick", function (event) { event.preventDefault(); updateStatus("takeback") });
             </script>
         </div>
 
     </div>
 
     <div data-role="page" id="gameLister">
-        <a href="#home">
+        <a href="#" data-rel="back">
             <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
 
                 <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
@@ -584,7 +629,7 @@
     </div>
 
     <script>
-        $(document).on('pagehide', '#gameLister', function () { $("#gameHistory,#gameActive").html("") });
+        $(document).on('pagebeforeshow', '#gameLister', function () { loadGames(); });
     </script>
 
     <script>
@@ -604,25 +649,27 @@
 
             ble.startScan([],
             function (device) {
-                if (specified_id) {
-                    console.log(specified_id);
-                    if (specified_id == device.id) {
+                if (device != undefined) {
+                    if (specified_id) {
+                        console.log(specified_id);
+                        if (specified_id == device.id) {
+                            device_id = device.id;
+                            foundDevice = true;
+                            document.getElementById("statusDiv").innerText = "Connecting...";
+                            ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
+                            $("#deviceList").append("<span onclick='disconnectDevice()'><span style='color:#ff0000;'>&times; </span><span style='color:#86f442'>" + device.name + "</span></span>");
+                        }
+                    }
+                    else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp" && foundDevice == false) {
                         device_id = device.id;
                         foundDevice = true;
                         document.getElementById("statusDiv").innerText = "Connecting...";
                         ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
                         $("#deviceList").append("<span onclick='disconnectDevice()'><span style='color:#ff0000;'>&times; </span><span style='color:#86f442'>" + device.name + "</span></span>");
                     }
+                    else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp")
+                        $("#deviceList").append("<div class='devicy' data-deviceid='" + device.id + "'>" + device.name + "</div>");
                 }
-                else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp" && foundDevice == false) {
-                    device_id = device.id;
-                    foundDevice = true;
-                    document.getElementById("statusDiv").innerText = "Connecting...";
-                    ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
-                    $("#deviceList").append("<span onclick='disconnectDevice()'><span style='color:#ff0000;'>&times; </span><span style='color:#86f442'>" + device.name + "</span></span>");
-                }
-                else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp")
-                    $("#deviceList").append("<div class='devicy' data-deviceid='" + device.id + "'>" + device.name + "</div>");
             },
             function () { console.log('startScan failed') });
 
@@ -728,7 +775,7 @@
                 }
             }
             else if (myGame.Type == "AI" || myGame.Type == "OTB") {
-                console.log("myGame.Type is "+myGame.Type);
+                console.log("myGame.Type is " + myGame.Type);
                 if (game.moves({ square: square })[0] !== undefined) {
                     console.log(game.moves({ square: square }));
                     sendSource = square;
