@@ -70,6 +70,7 @@ function openGame(id, i) {
             var data = new Uint8Array(1);
             data[0] = writeTargetInit;
             ble.write(device_id, service_id, characteristic_id, data.buffer);
+            //writeLog(data);
             window.currentGame = games[i].fullId;
 
             gameConnect(gameInfo);
@@ -117,6 +118,7 @@ function tryy(id) {
                 var data = new Uint8Array(1);
                 data[0] = writeTargetInit;
                 ble.write(device_id, service_id, characteristic_id, data.buffer);
+                //writeLog(data);
                 window.currentGame = games[gamify].fullId;
                 gamify = 100;
                 //launchApp();
@@ -394,6 +396,7 @@ var lightLED = function () {
     //console.log("I should be writing " + data2[0] + " to: " + device_id + " and service_id: " + service_id + " and with char_id: " + characteristic_id);
 
     ble.write(device_id, service_id, characteristic_id, data2.buffer);
+    //writeLog(data2);
 }
 
 function sendLichessMove(source, target) {

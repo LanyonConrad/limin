@@ -47,6 +47,8 @@
 
         function initGameObject(white, black, type) {
 
+            clearInterval(writer);
+
             var d = new Date();
             var n = d.toJSON();
 
@@ -143,12 +145,15 @@
 
                     if (lookin[i].Type == myGame.Type) {
                         if (lookin[i].Result !== "") {
-                            $("#gameHistory").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: rgba(26,26,26,0.75); padding: 5px 10px 10px 10px; margin: auto; margin-bottom:20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p><button id='" + lookin[i].TimeCreated + "Btn'>Delete</button></div>");
+                            resulter = lookin[i].Result.split("-");
+                            resulter[0] = (resulter[0] == "1") ? "underline" : "none";
+                            resulter[1] = (resulter[1] == "1") ? "underline" : "none";
+                            $("#gameHistory").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: rgba(26,26,26,0.75); padding: 5px 10px 10px 10px; margin: auto; margin-bottom:20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;text-decoration:"+resulter[0]+"'>" + lookin[i].White + "</span></p><p style='color: #ffffff; text-shadow: none;line-height:0;'>vs</p><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;text-decoration:"+resulter[1]+"'>" + lookin[i].Black + "</span></p><br /><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p><button id='" + lookin[i].TimeCreated + "Btn'>Delete Game</button>&nbsp;<button>Copy PGN</button><br /><br /></div>");
                             $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
                             $("#" + lookin[i].TimeCreated + "Btn").on("vclick", function (event) { event.preventDefault(); deleteGame(this.id) });
                         }
                         else {
-                            $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-bottom: 20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><h2 style='color: #ffffff; text-shadow: none'>" + lookin[i].White + "<br />" + lookin[i].Black + "</h2><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Result + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div>");
+                            $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-bottom: 20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;'>" + lookin[i].White + "</span></p><p style='color: #ffffff; text-shadow: none;line-height:0;'>vs</p><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;'>" + lookin[i].Black + "</span></p><br /><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div>");
                             $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")); });
 
                         }
@@ -226,14 +231,16 @@
                 <div id="playOTBNames" style="width:100%; margin: auto; text-align: center;display:none">
 
                     <form>
-                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIWhite" placeholder="White">
-                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIBlack" placeholder="Black">
+                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIWhite" autocomplete="off" placeholder="White">
+                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIBlack" autocomplete="off" placeholder="Black">
                         <button id="createOTBGameBtn">Create Game</button>
                         <script>
                             $("#createOTBGameBtn").on("vclick", function (event) {
                                 event.preventDefault();
                                 whiteName = document.getElementById('playAIWhite').value;
+                                document.getElementById('playAIWhite').value = "";
                                 blackName = document.getElementById('playAIBlack').value;
+                                document.getElementById('playAIBlack').value = "";
                                 if (blackName != "" && whiteName != "") {
                                     initGameObject(whiteName, blackName, "OTB");
                                     $('body').pagecontainer('change', '#gamePage');
@@ -350,7 +357,7 @@
         <div data-role="main">
             <!-- start example HTML -->
             <div style="position:absolute;height:100%;width:100%">
-                <div id="board" style="width: 100%;position: relative;top: 50%;transform: perspective(1px) translateY(-50%)"></div>
+                <div id="board" style="background-color:#4286f4;width: 100%;position: relative;top: 50%;transform: perspective(1px) translateY(-50%)"></div>
                 <br /><br /><br /><br /><br /><br /><br /><p>Status: <span id="status"></span></p>
             </div>
 
@@ -594,7 +601,7 @@
                 <div style="display:inline-block">
                     <div style="font-weight:bold;padding: 0px 20px;float:left" id="resignBtn">Resign</div>
                     <div style="font-weight:bold;padding: 0px 20px;float:left" id="takebackBtn">Takeback</div>
-                    <div style="font-weight:bold;padding: 0px 20px;float:left" id="drawBtn">Draw</div>
+                    <div style="font-weight:bold;padding: 0px 20px;float:left" id="drawBtn">Offer Draw</div>
                 </div>
             </div>
 
@@ -758,8 +765,10 @@
                     sendSource = square;
                     clearInterval(writer);
                     latestMove = null;
-                    if (data)
-                        ble.write(device_id, service_id, characteristic_id, data.buffer);
+                    if (data) {
+                        //ble.write(device_id, service_id, characteristic_id, data.buffer);
+                        //writeLog(data);
+                    }
                     console.log("sendSource is now " + sendSource);
                 }
                 else if (sendSource != null)
@@ -781,8 +790,10 @@
                     sendSource = square;
                     clearInterval(writer);
                     latestMove = null;
-                    if (data)
-                        ble.write(device_id, service_id, characteristic_id, data.buffer);
+                    if (data) {
+                        //ble.write(device_id, service_id, characteristic_id, data.buffer);
+                        //writeLog(data);
+                    }
                     console.log("sendSource is now " + sendSource);
                 }
                 else if (sendSource != null) {
@@ -810,6 +821,11 @@
                 console.log(new_device_id);
                 loadDeviceList(event, new_device_id);
             }
+        }
+
+        function writeLog(dataToLog) {
+            console.log(dataToLog[0]);
+            //document.getElementById("bleWriteLog").innerText = "<br />" + document.getElementById("bleWriteLog").innerText + dataToLog;
         }
 
     </script>
