@@ -154,7 +154,7 @@
                         }
                         else {
                             $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-bottom: 20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;'>" + lookin[i].White + "</span></p><p style='color: #ffffff; text-shadow: none;line-height:0;'>vs</p><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;'>" + lookin[i].Black + "</span></p><br /><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div>");
-                            $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")); });
+                            $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")); $('#blackTitle').html(myGame.Black); $('#whiteTitle').html(myGame.White); });
 
                         }
 
@@ -357,8 +357,13 @@
         <div data-role="main">
             <!-- start example HTML -->
             <div style="position:absolute;height:100%;width:100%">
-                <div id="board" style="background-color:#4286f4;width: 100%;position: relative;top: 50%;transform: perspective(1px) translateY(-50%)"></div>
-                <br /><br /><br /><br /><br /><br /><br /><p>Status: <span id="status"></span></p>
+                <div style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%)">
+                    <div style="width:100%; text-align:right;font-weight:bold;"><span id="blackTitle" style="position:relative;right:10px;bottom:5px"></span></div>
+                    <div id="board" style="background-color:#4286f4;width: 100%;"></div>
+                    <div style="width:100%; text-align:right;font-weight:bold;"><span id="whiteTitle" style="position:relative;right:10px;top:5px"></span></div>
+                </div>
+                
+                <br /><br /><br /><br /><br /><br /><p>Status: <span id="status"></span></p>
             </div>
 
             <!-- end example HTML -->
@@ -742,6 +747,8 @@
                 console.log("if " + data[0] + " equals " + writeTarget + ", blinking should stop");
                 if (data[0] == writeTarget) {
                     clearInterval(writer);
+                    data[0] = 255;
+                    ble.write(device_id, service_id, characteristic_id, data.buffer);
                     latestMove = null;
                 }
 
