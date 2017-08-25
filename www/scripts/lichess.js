@@ -505,11 +505,14 @@ function digestMSG(eventData) {
         if (latestMove != null)
             if (player == myColor) {
 
-                if (clearInterval(writer)); // make sure cleared before setting
-                writer = setInterval(lightLED, 250);
+                
 
                 writeSource = squares.indexOf(latestMove.slice(0, 2));
                 writeTarget = squares.indexOf(latestMove.slice(2, 4));
+
+                if (clearInterval(writer)); // make sure cleared before setting
+                lightLED();
+                writer = setTimeout(lightLED, 500);
             }
     }
 

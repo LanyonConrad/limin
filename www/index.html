@@ -154,7 +154,7 @@
                         }
                         else {
                             $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-bottom: 20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;'>" + lookin[i].White + "</span></p><p style='color: #ffffff; text-shadow: none;line-height:0;'>vs</p><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;'>" + lookin[i].Black + "</span></p><br /><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div>");
-                            $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")); $('#blackTitle').html(myGame.Black); $('#whiteTitle').html(myGame.White); });
+                            $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")) });
 
                         }
 
@@ -483,6 +483,8 @@
                     fenEl = $('#fen');
                     pgnEl = $('#pgn');
 
+                    $('#blackTitle').html(myGame.White); $('#whiteTitle').html(myGame.Black);
+
                     // do not pick up pieces if the game is over
                     // only pick up pieces for the side to move
                     var onDragStart = function (source, piece, position, orientation) {
@@ -515,7 +517,8 @@
                         onDragStart: onDragStart,
                         onDrop: onDrop,
                         onSnapEnd: onSnapEnd,
-                        showNotation: false
+                        showNotation: false,
+                        orientation: 'black'
                     };
                     board = ChessBoard('board', cfg);
 
@@ -567,14 +570,16 @@
 
                                 board.position(game.fen());
 
-                                if (clearInterval(writer)); // make sure cleared before setting
-                                writer = setInterval(lightLED, 250);
+                                
 
                                 latestMove = source + target;
 
                                 writeSource = squares.indexOf(latestMove.slice(0, 2));
                                 writeTarget = squares.indexOf(latestMove.slice(2, 4));
 
+                                if (clearInterval(writer)); // make sure cleared before setting
+                                lightLED();
+                                writer = setTimeout(lightLED, 500);
 
                                 updateStatus();
 
