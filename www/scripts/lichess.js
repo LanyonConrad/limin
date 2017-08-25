@@ -36,10 +36,10 @@ function lichessOnGame() {
 
 }
 
-function openGame(id,i) {
-    
+function openGame(id, i) {
+
     if (socket != null) {
-        
+
         setTimeout(function () { openGame(id, i) }, 250);
         return false;
     }
@@ -70,6 +70,7 @@ function openGame(id,i) {
             var data = new Uint8Array(1);
             data[0] = writeTargetInit;
             ble.write(device_id, service_id, characteristic_id, data.buffer);
+            //writeLog(data);
             window.currentGame = games[i].fullId;
 
             gameConnect(gameInfo);
@@ -117,6 +118,7 @@ function tryy(id) {
                 var data = new Uint8Array(1);
                 data[0] = writeTargetInit;
                 ble.write(device_id, service_id, characteristic_id, data.buffer);
+                //writeLog(data);
                 window.currentGame = games[gamify].fullId;
                 gamify = 100;
                 //launchApp();
@@ -282,7 +284,7 @@ function gameConnect(gameInfo) {
 
     window.gameId = gameInfo.game.id;
 
-    
+
 
     console.log("connecting to game " + gameId);
 
@@ -308,8 +310,12 @@ function gameConnect(gameInfo) {
 
         console.log("Connected to " + gameId);
 
-        
+
         document.getElementById(gameId).style.backgroundColor = "#86f442";
+
+        initGameObject("White","Black","lichess");
+
+        
 
     };
 
@@ -390,28 +396,33 @@ var lightLED = function () {
     //console.log("I should be writing " + data2[0] + " to: " + device_id + " and service_id: " + service_id + " and with char_id: " + characteristic_id);
 
     ble.write(device_id, service_id, characteristic_id, data2.buffer);
+    //writeLog(data2);
 }
 
-function sendMove(source, target) {
+function sendLichessMove(source, target) {
 
-    var move = {
-        t: 'move',
-        d: {
-            from: source,
-            to: target
-        }
-    };
+    if (socket != null) { //this condition probably not necessary...
+        var move = {
+            t: 'move',
+            d: {
+                from: source,
+                to: target
+            }
+        };
 
-    window.sentMove = source + target;
+        window.sentMove = source + target;
 
-    sentMove = source + target;
+        sentMove = source + target;
 
-    socket.send(JSON.stringify(move));
-    console.log("move sent to lichess!");
-    window.awaitingAck = true;
+        socket.send(JSON.stringify(move));
+        console.log("move sent to lichess!");
+        window.awaitingAck = true;
 
-    window.sendSource = null;
-    window.sendTarget = null;
+        window.sendSource = null;
+        window.sendTarget = null;
+    }
+
+    
 
 }
 
@@ -494,11 +505,14 @@ function digestMSG(eventData) {
         if (latestMove != null)
             if (player == myColor) {
 
-                if (clearInterval(writer)); // make sure cleared before setting
-                writer = setInterval(lightLED, 250);
+                
 
                 writeSource = squares.indexOf(latestMove.slice(0, 2));
                 writeTarget = squares.indexOf(latestMove.slice(2, 4));
+
+                if (clearInterval(writer)); // make sure cleared before setting
+                lightLED();
+                writer = setTimeout(lightLED, 500);
             }
     }
 
@@ -506,26 +520,26 @@ function digestMSG(eventData) {
 
 function launchApp() {
 
-    if(device.platform == "Android")
-    try {
-        startApp.set({
-            "application": "org.lichess.mobileapp"
-        }).start(function () { /* success */
-            console.log("launched!");
-        }, function (error) { /* fail */
-            console.log(error);
-        });
-    }
-    catch (err){}
+    if (device.platform == "Android")
+        try {
+            startApp.set({
+                "application": "org.lichess.mobileapp"
+            }).start(function () { /* success */
+                console.log("launched!");
+            }, function (error) { /* fail */
+                console.log(error);
+            });
+        }
+        catch (err) { }
 
-    if(device.platform == "iOS")
-    try{
-        startApp.set("lichess://").start(function () { /* success */
-            console.log("launched!");
-        }, function (error) { /* fail */
-            console.log(error);
-        });
-    }
-    catch(err){}
+    if (device.platform == "iOS")
+        try {
+            startApp.set("lichess://").start(function () { /* success */
+                console.log("launched!");
+            }, function (error) { /* fail */
+                console.log(error);
+            });
+        }
+        catch (err) { }
 
 }

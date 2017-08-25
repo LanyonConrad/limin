@@ -13,14 +13,11 @@
     <script src="scripts/jquery-2.1.1.min.js"></script>
     <script src="scripts/jquery.mobile-1.4.5.min.js"></script>
     <script src="scripts/chess.js"></script>
+    <script src="enginegame.js"></script>
     <script src="scripts/chessboard-0.3.0.js"></script>
     <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
     <link rel="stylesheet" href="css/chessboard-0.3.0.css">
     <style>
-        .ui-page-theme-a {
-            background: #1a1a1a;
-        }
-
         .hidden {
             display: none;
         }
@@ -35,16 +32,154 @@
             src: url('digital-7.mono.ttf');
         }
     </style>
+    <script>
+
+        window.myGame = {
+            "White": "",
+            "Black": "",
+            "Result": "",
+            "Type": "",
+            "TimeCreated": "",
+            "Date": "",
+            "PGN": "",
+            "FEN": ""
+        };
+
+        function initGameObject(white, black, type) {
+
+            clearInterval(writer);
+
+            var d = new Date();
+            var n = d.toJSON();
+
+            myGame = {
+                "White": white,
+                "Black": black,
+                "Result": "", // this is important so that update status doesn't think game is over (if myGame.Result was already set to over)
+                "Type": type,
+                "TimeCreated": Date.now(),
+                "Date": n.slice(0, 4) + "." + n.slice(5, 7) + "." + n.slice(8, 10),
+                "PGN": "", // this is important so that the init function doesn't think you should be continuing a game (if myGame.PGN was already set)
+                "FEN": ""
+            };
+
+            sendSource = null;
+            sendTarget = null;
+
+            latestMove = null;
+        }
+
+        function deleteGame(id) {
+
+            TimeCreated = id.replace("Btn", "");
+
+            document.getElementById(TimeCreated).style.display = "none";
+
+            var arr = JSON.parse("[" + localStorage.games + "]");
+            yooo = JSON.stringify(removeByAttr(arr, 'TimeCreated', TimeCreated));
+            console.log(yooo);
+            console.log(TimeCreated);
+            localStorage.games = (yooo.slice(1, yooo.length - 1));
+
+            function removeByAttr(arr, attr, value) {
+                var i = arr.length;
+                while (i--) {
+                    if (arr[i]
+                        && arr[i].hasOwnProperty(attr)
+                        && (arguments.length > 2 && arr[i][attr] == value)) {
+                        console.log("found it");
+                        arr.splice(i, 1);
+
+                    }
+                }
+                return arr;
+            }
+
+        }
+
+        function gameStore(game) {
+
+            console.log(myGame);
+
+            if (localStorage.games) {
+                if (gameExists(myGame))
+                    console.log("game overwritten!");
+                else
+                    localStorage.games = localStorage.games + "," + JSON.stringify(myGame);
+            }
+            else
+                localStorage.games = JSON.stringify(myGame);
+
+            // check to see of game already exists in storage
+            function gameExists(myGame) {
+                existingGames = JSON.parse("[" + localStorage.games + "]");
+
+                for (var i = 0; i < existingGames.length; i++)
+                    if (existingGames[i].TimeCreated == myGame.TimeCreated) {
+                        existingGames[i] = myGame;
+                        console.log(existingGames);
+                        bleh = JSON.stringify(existingGames);
+                        localStorage.games = (bleh.slice(1, bleh.length - 1));
+                        return true;
+                    }
+                return false;
+            }
+
+
+        }
+
+        function loadGames() {
+
+            $("#gameHistory,#gameActive").html("");
+
+            console.log(myGame.Type);
+
+            if (localStorage.games !== undefined) {
+
+                var lookin = JSON.parse("[" + localStorage.games + "]");
+
+                console.log(lookin.length);
+
+                for (var i = lookin.length - 1; i >= 0; i--) {
+                    console.log(lookin[i]);
+
+                    if (lookin[i].Type == myGame.Type) {
+                        if (lookin[i].Result !== "") {
+                            resulter = lookin[i].Result.split("-");
+                            resulter[0] = (resulter[0] == "1") ? "underline" : "none";
+                            resulter[1] = (resulter[1] == "1") ? "underline" : "none";
+                            $("#gameHistory").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: rgba(26,26,26,0.75); padding: 5px 10px 10px 10px; margin: auto; margin-bottom:20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;text-decoration:"+resulter[0]+"'>" + lookin[i].White + "</span></p><p style='color: #ffffff; text-shadow: none;line-height:0;'>vs</p><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;text-decoration:"+resulter[1]+"'>" + lookin[i].Black + "</span></p><br /><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p><button id='" + lookin[i].TimeCreated + "Btn'>Delete Game</button>&nbsp;<button>Copy PGN</button><br /><br /></div>");
+                            $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); (this.style.height == "110px") ? this.style.height = "auto" : this.style.height = "110px" });
+                            $("#" + lookin[i].TimeCreated + "Btn").on("vclick", function (event) { event.preventDefault(); deleteGame(this.id) });
+                        }
+                        else {
+                            $("#gameActive").append("<div data-objey='" + JSON.stringify(lookin[i]) + "' id='" + lookin[i].TimeCreated + "' style='width: 85%; height: 110px; background-color: #4286f4; padding: 5px 10px 10px 10px; margin: auto; margin-bottom: 20px; text-align: center; overflow: hidden'><div id='board" + i + "' style='width: 125px; margin-top: -5px; margin-right: -10px; float: right'></div><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;'>" + lookin[i].White + "</span></p><p style='color: #ffffff; text-shadow: none;line-height:0;'>vs</p><p style='color: #ffffff; text-shadow: none'><span style='font-weight:bold;font-size:1.5em;line-height:1em;'>" + lookin[i].Black + "</span></p><br /><p style='color: #ffffff; text-shadow: none'>" + lookin[i].Date + "</p><p style='color: #ffffff; text-shadow: none'>" + lookin[i].PGN + "</p></div>");
+                            $("#" + lookin[i].TimeCreated).on("vclick", function (event) { event.preventDefault(); $('body').pagecontainer('change', '#gamePage'); console.log(JSON.parse($(this).attr("data-objey"))); window.myGame = JSON.parse($(this).attr("data-objey")) });
+
+                        }
+
+                        var board = ChessBoard('board' + i, {
+                            position: lookin[i].FEN,
+                            showNotation: false
+                        });
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
-
-    <div data-role="page" id="home" data-theme="a">
+    <script>
+        $(document).on('pagebeforeshow', '#home', function () { document.getElementById('playOTBNames').style.display = 'none'; document.getElementById('playAINames').style.display = 'none' });
+    </script>
+    <div data-role="page" id="home">
         <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
             <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
                 <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
             </div>
             <div style="float:right;padding:0px 4px;">
-                <div id="deviceList"></div><div id="statusDiv"></div>
+                <div id="deviceList"></div><div id="statusDiv" style="color: rgba(26,26,26,0.75)"></div>
+                <!--<div id="heighter">hhk</div>-->
             </div>
 
         </div>
@@ -85,17 +220,61 @@
                     <input type="checkbox" id="always">-->
                 </div>
             </div>
-            <div style="clear:both"></div><br />
-            <div style="width: 85%; color: #ffffff; text-shadow: none; background-color: #f48642; padding: 5px 10px 10px 10px; margin: auto; text-align: center;">
-                <div id="playAI" onclick="(document.getElementById('playAINames').style.display == 'initial') ? document.getElementById('playAINames').style.display = 'none' : document.getElementById('playAINames').style.display = 'initial'" style="width:100%; margin: auto; height:110px; text-align: center;">
+            <div id="playOTBdiv" style="clear:both"></div><br />
+
+            <div style="width: 85%; color: #ffffff; text-shadow: none; background-color: #86f442; padding: 5px 10px 10px 10px; margin: auto; text-align: center;">
+                <div id="playOTB" onclick="(document.getElementById('playOTBNames').style.display == 'initial') ? document.getElementById('playOTBNames').style.display = 'none' : document.getElementById('playOTBNames').style.display = 'initial'; scrollBy(0, 100);" style="width:100%; margin: auto; height:110px; text-align: center;">
+                    <br />
+                    <h2 id="playOTBH2" style="color: #ffffff; text-shadow: none">Play OTB</h2>
+                </div>
+
+                <div id="playOTBNames" style="width:100%; margin: auto; text-align: center;display:none">
+
+                    <form>
+                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIWhite" autocomplete="off" placeholder="White">
+                        <input onfocus="$('html, body').animate({scrollTop: $('#playOTBdiv').offset().top});" type="text" id="playAIBlack" autocomplete="off" placeholder="Black">
+                        <button id="createOTBGameBtn">Create Game</button>
+                        <script>
+                            $("#createOTBGameBtn").on("vclick", function (event) {
+                                event.preventDefault();
+                                whiteName = document.getElementById('playAIWhite').value;
+                                document.getElementById('playAIWhite').value = "";
+                                blackName = document.getElementById('playAIBlack').value;
+                                document.getElementById('playAIBlack').value = "";
+                                if (blackName != "" && whiteName != "") {
+                                    initGameObject(whiteName, blackName, "OTB");
+                                    $('body').pagecontainer('change', '#gamePage');
+                                }
+                                else
+                                    alert("Enter a name!");
+                            });
+                        </script>
+                        <button id="viewOTBGames">View Games</button>
+                        <script>
+                            $("#viewOTBGames").on("vclick", function (event) {
+                                event.preventDefault();
+
+                                myGame.Type = "OTB";
+
+                                $('body').pagecontainer('change', '#gameLister');
+
+                            });
+                        </script>
+                    </form>
+                </div>
+            </div>
+
+            <div id="playAIdiv" style="clear:both">
+
+            </div><br /><div style="width: 85%; color: #ffffff; text-shadow: none; background-color: #f48642; padding: 5px 10px 10px 10px; margin: auto; text-align: center;">
+                <div id="playAI" onclick="(document.getElementById('playAINames').style.display == 'initial') ? document.getElementById('playAINames').style.display = 'none' : document.getElementById('playAINames').style.display = 'initial'; scrollBy(0, 200);" style="width:100%; margin: auto; height:110px; text-align: center;">
                     <br />
                     <h2 id="playAIH2" style="color: #ffffff; text-shadow: none">Play AI</h2>
                 </div>
 
                 <div id="playAINames" style="width:100%; margin: auto; text-align: center;display:none">
                     <form>
-                        <select id="playOTBWhite">
-                            <option value="you">You</option>
+                        <select id="stockfishLevel">
                             <option value="0">Stockfish 0</option>
                             <option value="1">Stockfish 1</option>
                             <option value="2">Stockfish 2</option>
@@ -118,60 +297,357 @@
                             <option value="19">Stockfish 19</option>
                             <option value="20">Stockfish 20</option>
                         </select>
-                        <select id="playOTBBlack">
-                            <option value="you">You</option>
-                            <option value="0">Stockfish 0</option>
-                            <option value="1">Stockfish 1</option>
-                            <option value="2">Stockfish 2</option>
-                            <option value="3">Stockfish 3</option>
-                            <option value="4">Stockfish 4</option>
-                            <option value="5">Stockfish 5</option>
-                            <option value="6" selected>Stockfish 6</option>
-                            <option value="7">Stockfish 7</option>
-                            <option value="8">Stockfish 8</option>
-                            <option value="9">Stockfish 9</option>
-                            <option value="10">Stockfish 10</option>
-                            <option value="11">Stockfish 11</option>
-                            <option value="12">Stockfish 12</option>
-                            <option value="13">Stockfish 13</option>
-                            <option value="14">Stockfish 14</option>
-                            <option value="15">Stockfish 15</option>
-                            <option value="16">Stockfish 16</option>
-                            <option value="17">Stockfish 17</option>
-                            <option value="18">Stockfish 18</option>
-                            <option value="19">Stockfish 19</option>
-                            <option value="20">Stockfish 20</option>
-                        </select>
-                        <button onclick="">Create Game</button>
-                        <button onclick="">View Games</button>
+                        <button id="createAIGameWhiteBtn">Play as White</button>
+                        <button id="createAIGameBlackBtn">Play as Black</button>
+                        <script>
+                            $("#createAIGameWhiteBtn,#createAIGameBlackBtn").on("vclick", function (event) {
+                                event.preventDefault();
+                                stockfishLevel = document.getElementById('stockfishLevel');
+                                if (this.id == "createAIGameWhiteBtn") {
+                                    whiteName = "You";
+                                    blackName = stockfishLevel.options[stockfishLevel.selectedIndex].text;
+                                }
+                                else {
+                                    blackName = "You";
+                                    whiteName = stockfishLevel.options[stockfishLevel.selectedIndex].text;
+                                }
+
+                                initGameObject(whiteName, blackName, "AI");
+                                $('body').pagecontainer('change', '#gamePage');
+
+                            });
+                        </script>
+                        <button id="viewAIGames">View Games</button>
+                        <script>
+                            $("#viewAIGames").on("vclick", function (event) {
+                                event.preventDefault();
+
+                                myGame.Type = "AI";
+
+                                $('body').pagecontainer('change', '#gameLister');
+
+                            });
+                        </script>
                     </form>
                 </div>
             </div>
+
 
             <div style="clear:both"></div><br />
-            <div style="width: 85%; color: #ffffff; text-shadow: none; background-color: #86f442; padding: 5px 10px 10px 10px; margin: auto; text-align: center;">
-                <div id="playOTB" onclick="(document.getElementById('playOTBNames').style.display == 'initial') ? document.getElementById('playOTBNames').style.display = 'none' : document.getElementById('playOTBNames').style.display = 'initial'" style="width:100%; margin: auto; height:110px; text-align: center;">
-                    <br />
-                    <h2 id="playOTBH2" style="color: #ffffff; text-shadow: none">Play OTB</h2>
-                </div>
-
-                <div id="playOTBNames" style="width:100%; margin: auto; text-align: center;display:none">
-
-                    <form>
-                        <input type="text" id="playAIWhite" placeholder="White" required>
-                        <input type="text" id="playAIBlack" placeholder="Black" required>
-                        <button onclick="">Create Game</button>
-                        <button onclick="">View Games</button>
-                    </form>
-                </div>
-            </div>
-
-            <div style="clear:both"></div>
             <!-- end example HTML -->
-            <div style="width: 85%;padding: 10px 10px 0px 10px; margin: auto; text-align: center; overflow: hidden"><span style="color: #ffffff; text-shadow: none;font-size:10px">CONNECT v1.0 - Handly LLC &copy; 2017</span></div>
+            <div style="display:none;width: 85%;padding: 10px 10px 0px 10px; margin: auto; text-align: center; overflow: hidden"><span style="color: #ffffff; text-shadow: none;font-size:10px">CONNECT v1.0 - Handly LLC &copy; 2017</span></div>
+            <div style="height:0px;overflow:hidden" id="offsetter">sadf</div>
             <!--<div id="asdf"></div>-->
         </div>
     </div>
+
+    <div data-role="page" id="gamePage">
+
+        <a href="#" data-rel="back">
+            <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
+                <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
+                    <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
+                </div>
+
+
+
+            </div>
+        </a>
+
+        <div data-role="main">
+            <!-- start example HTML -->
+            <div style="position:absolute;height:100%;width:100%">
+                <div style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%)">
+                    <div style="width:100%; text-align:right;font-weight:bold;"><span id="blackTitle" style="position:relative;right:10px;bottom:5px"></span></div>
+                    <div id="board" style="background-color:#4286f4;width: 100%;"></div>
+                    <div style="width:100%; text-align:right;font-weight:bold;"><span id="whiteTitle" style="position:relative;right:10px;top:5px"></span></div>
+                </div>
+                
+                <br /><br /><br /><br /><br /><br /><p>Status: <span id="status"></span></p>
+            </div>
+
+            <!-- end example HTML -->
+
+            <script>
+
+                function mover(source, target) {
+                    // see if the move is legal
+                    var move = game.move({
+                        from: source,
+                        to: target,
+                        promotion: 'q' // NOTE: always promote to a queen for example simplicity
+                    });
+
+                    // illegal move
+                    if (move === null)
+                        return 'snapback';
+
+                    sendMove();
+                }
+
+                var updateStatus = function (extraStuff) {
+
+                    if (myGame.Result == "") {
+
+                        var status = '';
+
+                        var moveColor = (game.turn() === 'b') ? 'Black' : 'White';
+
+                        // checkmate?
+                        if (game.in_checkmate() === true) {
+                            status = 'Game over, ' + moveColor + ' is in checkmate.';
+                            myGame.Result = ((moveColor == 'Black') ? "1-0" : "0-1");
+
+                        }
+
+                            // forfiet?
+                        else if (extraStuff == "resign") {
+                            status = 'Game over, ' + moveColor + ' has resigned.';
+                            myGame.Result = ((moveColor == 'Black') ? "1-0" : "0-1");
+                        }
+
+                            // takeback?
+                        else if (extraStuff == "takeback") {
+                            game.undo();
+                            board.position(game.fen());
+                        }
+
+                            // draw?
+                        else if (game.in_draw() === true || extraStuff == "draw") {
+                            status = 'Game over, draw game';
+                            myGame.Result = "1/2-1/2";
+                        }
+
+                            // game still on
+                        else {
+                            status = moveColor + ' to move';
+
+                            // check?
+                            if (game.in_check() === true) {
+                                status += ', ' + moveColor + ' is in check';
+                            }
+                        }
+
+                        statusEl.html(status);
+                        console.log(game.fen());
+                        myGame.FEN = game.fen();
+                        console.log(game.pgn());
+                        myGame.PGN = game.pgn();
+                        gameStore(game);
+                    }
+                };
+
+
+                function sendMove() {
+
+                    if (myGame.Type == "AI" && game.turn() == AIcolor) {
+                        stockfish.postMessage("position fen " + game.fen());
+                        stockfish.postMessage("go");
+
+
+
+                    }
+
+                    console.log(game.pgn());
+                    console.log(game.ascii());
+
+                    board.position(game.fen());
+
+                    updateStatus();
+
+                    //if (game.game_over()) {
+                    //    if (game.in_checkmate()) {
+                    //        var winner = (game.get(target).color == 'w') ? "White" : "Black";
+                    //        setTimeout((function () { alert("Game Over!!! " + winner + " wins!") }), 1000);
+                    //    }
+                    //    else
+                    //        setTimeout((function () { alert("Game Over!!! It's a draw!") }), 1000);
+                    //}
+
+
+                }
+
+
+                var init = function () {
+
+                    // end lichess stuffs
+                    if (lobbySocket != null)
+                        lobbySocket.close();
+
+                    // start example JS
+                    window.board;
+                    window.game = new Chess();
+                    if (myGame.PGN != "")
+                        game.load_pgn(myGame.PGN);
+                    statusEl = $('#status');
+                    fenEl = $('#fen');
+                    pgnEl = $('#pgn');
+
+                    $('#blackTitle').html(myGame.White); $('#whiteTitle').html(myGame.Black);
+
+                    // do not pick up pieces if the game is over
+                    // only pick up pieces for the side to move
+                    var onDragStart = function (source, piece, position, orientation) {
+                        if (game.game_over() === true ||
+                            (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+                            (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+                            return false;
+                        }
+                    };
+
+                    var onDrop = function (source, target) {
+
+
+
+                        mover(source, target);
+
+                    };
+
+                    // update the board position after the piece snap
+                    // for castling, en passant, pawn promotion
+                    var onSnapEnd = function () {
+                        board.position(game.fen());
+                    };
+
+
+
+                    var cfg = {
+                        draggable: true,
+                        position: (myGame.FEN == "") ? 'start' : myGame.FEN,
+                        onDragStart: onDragStart,
+                        onDrop: onDrop,
+                        onSnapEnd: onSnapEnd,
+                        showNotation: false,
+                        orientation: 'black'
+                    };
+                    board = ChessBoard('board', cfg);
+
+                    updateStatus();
+                    // end example JS
+
+
+
+
+                    if (myGame.Type == "AI") {
+
+                        AIcolor = (myGame.White == "You") ? 'b' : 'w';
+
+                        window.stockfish = new Worker("stockfish.js");
+                        stockfish.postMessage("uci");
+                        stockfish.postMessage("ucinewgame");
+                        beesee = ((AIcolor == 'w') ? myGame.White : myGame.Black);
+                        stockfish.postMessage("setoption name Skill Level value " + beesee.replace("Stockfish ", ""));
+                        console.log("level is " + beesee);
+
+                        sendMove();
+
+
+
+                        stockfish.onmessage = function (event) {
+
+
+
+                            console.log(event.data);
+
+                            if (event.data.includes("bestmove")) {
+
+                                move = event.data.substring(9, 14);
+                                console.log("log this move: " + move);
+
+                                var source = move.substring(0, 2);
+                                var target = move.substring(2, 4);
+                                var promo = move.substring(4, 5);
+
+                                console.log(game.move({
+                                    from: source,
+                                    to: target,
+                                    promotion: promo
+                                }));
+
+                                console.log(game.pgn());
+                                console.log(game.ascii());
+
+
+                                board.position(game.fen());
+
+                                
+
+                                latestMove = source + target;
+
+                                writeSource = squares.indexOf(latestMove.slice(0, 2));
+                                writeTarget = squares.indexOf(latestMove.slice(2, 4));
+
+                                if (clearInterval(writer)); // make sure cleared before setting
+                                lightLED();
+                                writer = setTimeout(lightLED, 500);
+
+                                updateStatus();
+
+                                //if (game.game_over()) {
+                                //    if (game.in_checkmate()) {
+                                //        var winner = (game.get(target).color == 'w') ? "White" : "Black";
+                                //        setTimeout((function () { alert("Game Over!!! " + winner + " wins!") }), 1000);
+                                //    }
+                                //    else
+                                //        setTimeout((function () { alert("Game Over!!! It's a draw!") }), 1000);
+                                //}
+
+                            }
+
+
+
+                        };
+
+
+                    }
+
+                }; // end init()
+                $(document).on('pageshow', '#gamePage', init);
+                $(document).on('pagehide', '#gamePage', function () { board.clear(false) });
+            </script>
+
+
+            <div style="position:absolute;bottom:0px;height:60px;line-height:60px;width:100%;text-align:center;overflow:hidden;border-top:1px solid rgba(26,26,26,0.75)">
+                <div style="display:inline-block">
+                    <div style="font-weight:bold;padding: 0px 20px;float:left" id="resignBtn">Resign</div>
+                    <div style="font-weight:bold;padding: 0px 20px;float:left" id="takebackBtn">Takeback</div>
+                    <div style="font-weight:bold;padding: 0px 20px;float:left" id="drawBtn">Offer Draw</div>
+                </div>
+            </div>
+
+
+            <script>
+                $("#resignBtn").on("vclick", function (event) { event.preventDefault(); updateStatus("resign") });
+                $("#drawBtn").on("vclick", function (event) { event.preventDefault(); updateStatus("draw") });
+                $("#takebackBtn").on("vclick", function (event) { event.preventDefault(); updateStatus("takeback") });
+            </script>
+        </div>
+
+    </div>
+
+    <div data-role="page" id="gameLister">
+        <a href="#" data-rel="back">
+            <div data-role="header" id="header" style="background-color: transparent;color:#ffffff;text-shadow:0 0 0;border: none;font-size:40px;position:fixed;left:0px;top:0px;width:100%;height:100px;z-index:100;font-size:18px;text-align:center">
+
+                <div style="background-color: rgba(26,26,26,0.75);float:left;width:100px;height:100px;margin-top:10px">
+                    <img style="position: relative;top: 50%;transform: perspective(1px) translateY(-50%);margin: auto;width:44px;" src="img/CONNECT_logo.svg" />
+                </div>
+
+
+
+            </div>
+        </a>
+
+        <div data-role="main" class="ui-content">
+
+            <div style="margin-top:150px;" id="gameActive"></div>
+            <div id="gameHistory"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).on('pagebeforeshow', '#gameLister', function () { loadGames(); });
+    </script>
 
     <script>
 
@@ -190,25 +666,27 @@
 
             ble.startScan([],
             function (device) {
-                if (specified_id) {
-                    console.log(specified_id);
-                    if (specified_id == device.id) {
+                if (device != undefined) {
+                    if (specified_id) {
+                        console.log(specified_id);
+                        if (specified_id == device.id) {
+                            device_id = device.id;
+                            foundDevice = true;
+                            document.getElementById("statusDiv").innerText = "Connecting...";
+                            ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
+                            $("#deviceList").append("<span onclick='disconnectDevice()'><span style='color:#ff0000;'>&times; </span><span style='color:#86f442'>" + device.name + "</span></span>");
+                        }
+                    }
+                    else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp" && foundDevice == false) {
                         device_id = device.id;
                         foundDevice = true;
                         document.getElementById("statusDiv").innerText = "Connecting...";
                         ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
-                        $("#deviceList").append("<span style='color:#ff0000;' onclick='disconnectDevice()'>&times; </span><span style='color:#86f442' class='devicy' data-deviceid='" + device.id + "'><span>" + device.name + "</span></span>");
+                        $("#deviceList").append("<span onclick='disconnectDevice()'><span style='color:#ff0000;'>&times; </span><span style='color:#86f442'>" + device.name + "</span></span>");
                     }
+                    else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp")
+                        $("#deviceList").append("<div class='devicy' data-deviceid='" + device.id + "'>" + device.name + "</div>");
                 }
-                else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp" && foundDevice == false) {
-                    device_id = device.id;
-                    foundDevice = true;
-                    document.getElementById("statusDiv").innerText = "Connecting...";
-                    ble.connect(device_id, function () { startNotification(device_id) }, function () { disconnectDevice(); });
-                    $("#deviceList").append("<span style='color:#ff0000;' onclick='disconnectDevice()'>&times; </span><span style='color:#86f442' class='devicy' data-deviceid='" + device.id + "'><span>" + device.name + "</span></span>");
-                }
-                else if (device.name.toLowerCase() == "connect v2" || device.name.toLowerCase() == "dual-spp")
-                    $("#deviceList").append("<div class='devicy' data-deviceid='" + device.id + "'>" + device.name + "</div>");
             },
             function () { console.log('startScan failed') });
 
@@ -270,10 +748,12 @@
                 // Decode the ArrayBuffer into a typed Array based on the data you expect
                 var data = new Uint8Array(buffer);
 
-                document.getElementById("asdf").innerHTML = document.getElementById("asdf").innerHTML + "<br />" + (data[0]);
+                //document.getElementById("asdf").innerHTML = document.getElementById("asdf").innerHTML + "<br />" + (data[0]);
                 console.log("if " + data[0] + " equals " + writeTarget + ", blinking should stop");
                 if (data[0] == writeTarget) {
                     clearInterval(writer);
+                    data[0] = 255;
+                    ble.write(device_id, service_id, characteristic_id, data.buffer);
                     latestMove = null;
                 }
 
@@ -290,31 +770,57 @@
         }
 
         function sendSquares(square, data) {
-
-            if (square in dests) {
-
-                sendSource = square;
-
-
-                clearInterval(writer);
-                latestMove = null;
-                if (data)
-                    ble.write(device_id, service_id, characteristic_id, data.buffer);
-                console.log("sendSource is now " + sendSource);
-
-            }
-            else if (sendSource != null)
-                if (dests[sendSource].includes(square)) {
-                    sendTarget = square;
-                    console.log("sendTarget is now " + sendTarget);
+            console.log("in sendSquares()");
+            if (myGame.Type == "lichess") {
+                console.log("myGame.Type == lichess");
+                if (square in dests) {
+                    sendSource = square;
+                    clearInterval(writer);
+                    latestMove = null;
+                    if (data) {
+                        //ble.write(device_id, service_id, characteristic_id, data.buffer);
+                        //writeLog(data);
+                    }
+                    console.log("sendSource is now " + sendSource);
                 }
-
-            if (sendSource != null && sendTarget != null) {
-                console.log("sending move " + sendSource + "" + sendTarget);
-                sendMove(sendSource, sendTarget);
-
-                sendSource = null;
-                sendTarget = null;
+                else if (sendSource != null)
+                    if (dests[sendSource].includes(square)) {
+                        sendTarget = square;
+                        console.log("sendTarget is now " + sendTarget);
+                    }
+                if (sendSource != null && sendTarget != null) {
+                    console.log("sending move " + sendSource + "" + sendTarget);
+                    sendLichessMove(sendSource, sendTarget);
+                    sendSource = null;
+                    sendTarget = null;
+                }
+            }
+            else if (myGame.Type == "AI" || myGame.Type == "OTB") {
+                console.log("myGame.Type is " + myGame.Type);
+                if (game.moves({ square: square })[0] !== undefined) {
+                    console.log(game.moves({ square: square }));
+                    sendSource = square;
+                    clearInterval(writer);
+                    latestMove = null;
+                    if (data) {
+                        //ble.write(device_id, service_id, characteristic_id, data.buffer);
+                        //writeLog(data);
+                    }
+                    console.log("sendSource is now " + sendSource);
+                }
+                else if (sendSource != null) {
+                    if ((game.moves({ square: sendSource }).toString()).includes(square)) {
+                        console.log(game.moves({ square: sendSource }));
+                        sendTarget = square;
+                        console.log("sendTarget is now " + sendTarget);
+                    }
+                    if (sendSource != null && sendTarget != null) {
+                        console.log("sending move " + sendSource + "" + sendTarget);
+                        mover(sendSource, sendTarget);
+                        sendSource = null;
+                        sendTarget = null;
+                    }
+                }
             }
         }
 
@@ -327,6 +833,11 @@
                 console.log(new_device_id);
                 loadDeviceList(event, new_device_id);
             }
+        }
+
+        function writeLog(dataToLog) {
+            console.log(dataToLog[0]);
+            //document.getElementById("bleWriteLog").innerText = "<br />" + document.getElementById("bleWriteLog").innerText + dataToLog;
         }
 
     </script>

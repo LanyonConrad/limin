@@ -23,10 +23,24 @@
 
         $('#createOTBGame-btn').click(createOTBGame);
 
+        //setInterval(function () { $("#heighter").html(window.innerHeight) },1000);
+
+        window.addEventListener('native.keyboardshow', keyboardShowHandler);
+        function keyboardShowHandler(e) { // fired when keyboard enabled
+            window.keyboardHeight = e.keyboardHeight;
+            document.getElementById("offsetter").style.height = keyboardHeight + "px";
+            //scrollBy(0, keyboardHeight);
+        }
+
+        window.addEventListener('native.keyboardhide', keyboardHideHandler);
+        function keyboardHideHandler(e) { // fired when keyboard disabled
+            //scrollBy(0, -keyboardHeight)
+            document.getElementById("offsetter").style.height = 0 + "px";
+            AndroidFullScreen.immersiveMode();
+        }
 
         
-
-
+    
 
 
         // Handle the Cordova pause and resume events

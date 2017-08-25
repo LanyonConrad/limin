@@ -63,5 +63,21 @@
         },
         "is_top_level": true,
         "variables": {}
+    },
+    "ionic-plugin-keyboard": {
+        "source": {
+            "type": "registry",
+            "id": "ionic-plugin-keyboard"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-fullscreen": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-fullscreen"
+        },
+        "is_top_level": true,
+        "variables": {}
     }
 }
